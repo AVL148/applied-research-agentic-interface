@@ -1,0 +1,13 @@
+{
+  "name": "atelier-maat",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Prototype van een agentic maakcoach voor ambachtelijk leren (zonder dependencies).",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "test": "node --test tests/logic.test.mjs"
+  },
+  "engines": { "node": ">=18" }
+}

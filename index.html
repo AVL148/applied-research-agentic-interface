@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>atelier/maat · maakcoach (prototype)</title>
+  <meta name="description" content="Prototype van een begeleide maakcoach voor mensen die een ambacht leren.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232f4a3a'/%3E%3Cpath d='M9 8v16M16 8v16M23 8v16' stroke='%23f4ede0' stroke-width='2'/%3E%3Cpath d='M6 13c4-3 6 3 10 0s6 3 10 0' stroke='%23c98a5a' stroke-width='2.2' fill='none'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Ga naar inhoud</a>
+  <div class="shell">
+    <header class="topbar">
+      <a class="brand" href="#/" aria-label="atelier/maat, naar het dashboard">atelier<span>/</span>maat</a>
+      <nav id="nav" aria-label="Hoofdnavigatie"></nav>
+    </header>
+    <main id="main" tabindex="-1"></main>
+    <footer class="foot">
+      <p>Prototype met lokale voorbeelddata. De begeleider is gesimuleerd en er is geen AI of video aangesloten.</p>
+      <button type="button" class="btn btn-quiet" id="reset-demo">Demo resetten</button>
+    </footer>
+  </div>
+
+  <dialog id="dialog" aria-labelledby="dialog-title"></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
