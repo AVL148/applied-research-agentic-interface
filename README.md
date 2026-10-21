@@ -1,53 +1,73 @@
-# atelier/maat
+// Begeleider-laag. ALLE coachantwoorden lopen via `askCoach`.
+//
+// Nu: een lokale, regelgebaseerde simulatie (geen AI, geen netwerk).
+// Later: vervang alleen de body van `askCoach` door een aanroep naar je EIGEN backend
+// (bijv. POST /api/coach) die een AI-model gebruikt. Zet nooit een API-sleutel in
+// frontendcode: de sleutel hoort op de server.
+//
+// Contract:
+//   askCoach({ kind, step, question?, history? }) -> Promise<{ text, followUp?, simulated }>
+//   kind: 'question' | 'explain' | 'hint' | 'welcome'
 
-Prototype van een agentic maakcoach voor mensen die een ambacht leren. Voorbeeldproject: een **geweven wandhanger** in 8 stappen, met demonstratie, begeleider en reflectie.
+export const COACH_MODE = 'prototype'; // 'prototype' | 'claude' (toekomstig)
 
-## Starten
+const KEYWORDS = [
+  {
+    words: ['vallei', 'dal', 'naar binnen', 'tension', 'druk', 'kromming', 'scherp'],
+    text: 'Deze vouw voelt nog wat te hard of te onrustig aan. Laat de binnenkant zacht tegen elkaar leggen en toets de scherpe vallei opnieuw langs de referentievideo.',
+    followUp: 'Was de vouw te strak of te los?',
+  },
+  {
+    words: ['berg', 'omhoog', 'buiten', 'kubus', 'punt', 'breed'],
+    text: 'Bij een bergvouw helpt het om de lijn eerst heel licht te markeren. Daardoor blijft de buitenste contour scherp zonder te scheuren.',
+    followUp: 'Wil je de bergvouw nog eens in een kleinere stap zien?',
+  },
+  {
+    words: ['symmetrie', 'links', 'rechts', 'scheef', 'midden', 'even'],
+    text: 'Controleer beide zijden tegelijk. Een kleine asymmetrie aan één kant blijft vaak zichtbaar in de gehele vorm.',
+    followUp: 'Zit het probleem vooral links of rechts?',
+  },
+  {
+    words: ['hoek', 'punt', 'rand', 'contour', 'afgerond', 'scherp'],
+    text: 'Jij bent dicht bij het juiste model. Maak de buitenste hoek nog wat strakker door de contour kort aan te zetten en daarna opnieuw te controleren.',
+    followUp: 'Welke hoek of rand valt het meest op?',
+  },
+  {
+    words: ['papier', 'scheur', 'krimp', 'kreukel', 'vouw'],
+    text: 'Neem een rustmoment en bekijk de vouw van dichtbij. Grotere kwaliteit ontstaat vaak door een kleine, gecontroleerde vouw in plaats van een harde druk.',
+  },
+];
 
-Vereist Node 18 of nieuwer. Er zijn geen dependencies en geen buildstap.
+const FALLBACKS = [
+  'Ik zie nog niet precies wat je aan de vouw wilt verbeteren. Laat me weten wat je model in de video doet en waar het op jouw papier anders is.',
+  'Dat kan ik niet alleen uit de beschrijving bepalen. Vergelijk één duidelijke plek met de video en dan kunnen we focussen op het probleem.',
+];
 
-```bash
-npm start        # http://localhost:5173  (andere poort: PORT=8080 npm start)
-npm test         # logica-tests (voortgang, opslag, zoeken, coach)
-```
+function delay(ms) {
+  return new Promise((r) => setTimeout(r, ms));
+}
 
-Je kunt ook elke statische server op de projectmap gebruiken.
+export async function askCoach({ kind, step, question = '', history = [] }) {
+  await delay(kind === 'welcome' ? 0 : 350); // voelt als antwoorden, maar blijft snel
 
-## Wat werkt echt
+  if (kind === 'welcome') {
+    return {
+      simulated: true,
+      text: `We werken aan “${step.title}”. Upload eerst een video, vergelijk daarna de vouw met de referentie en laat de AI je op één focuspunt sturen.`,
+    };
+  }
+  if (kind === 'explain') {
+    return { simulated: true, text: step.easier, followUp: 'Is dit duidelijker, of wil ik nog een andere vouwstap anders uitleggen?' };
+  }
+  if (kind === 'hint') {
+    const used = history.filter((m) => m.from === 'coach' && m.kind === 'hint').length;
+    const text = step.hints[used % step.hints.length];
+    return { simulated: true, text };
+  }
 
-- Navigatie: dashboard, project, tutorial per stap, technieken zoeken, opgeslagen technieken.
-- Leerpad met afgeronde, huidige en komende stappen; eerdere stappen opnieuw openen.
-- Voortgang, reflecties, gesprekken en opgeslagen technieken in `localStorage`; reset via **Demo resetten**.
-- Voortgang verandert **alleen** nadat de gebruiker een stap bevestigt (de coach kan dat niet).
-- Reflectievraag met opties en vrij tekstveld, overslaan mogelijk.
-- Zoeken en filteren op tekst, techniek en niveau.
-- Responsive en toetsenbordbedienbaar, met labels, zichtbare focus en `aria-live` voor het gesprek.
-
-## Wat gesimuleerd is
-
-- **Demonstratie:** een placeholder met lokale afspeel/pauze/herhaal-simulatie. Er is geen echte video.
-- **Begeleider:** lokale regels en voorbeeldantwoorden (`js/coach.js`). Geen AI, geen netwerk. De interface zegt dat ook.
-- **Technieken:** lokale voorbeelddata, niet van internet.
-
-## Waar Claude later aansluit
-
-Alle coachantwoorden lopen via één functie: `askCoach()` in `js/coach.js`. Vervang daar de lokale regels door een aanroep naar je **eigen backend** (bijv. `POST /api/coach`) die de Claude API gebruikt, met het contract:
-
-```
-askCoach({ kind, step, question?, history? }) -> { text, followUp?, simulated }
-```
-
-Zet nooit een API-sleutel in frontendcode. Andere toekomstige integraties: echte tutorialvideo's, beeldanalyse van het werkstuk, projectgeheugen en persoonlijke leeradviezen.
-
-## Structuur
-
-```
-index.html        shell en dialoog
-css/styles.css    ontwerp, responsive
-js/data.js        voorbeeldproject, stappen, technieken
-js/store.js       staat, localStorage, pure logica
-js/coach.js       begeleider-adapter (enige koppelpunt voor Claude)
-js/app.js         routing en schermen
-server.mjs        minimale statische server
-tests/            node:test
-```
+  const q = question.toLowerCase();
+  const hit = KEYWORDS.find((k) => k.words.some((w) => q.includes(w)));
+  if (hit) return { simulated: true, text: hit.text, followUp: hit.followUp };
+  const idx = history.filter((m) => m.from === 'coach').length % FALLBACKS.length;
+  return { simulated: true, text: FALLBACKS[idx] };
+}
