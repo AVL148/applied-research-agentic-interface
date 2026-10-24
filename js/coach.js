@@ -12,49 +12,41 @@ import { getAiStatus, postJson } from './api.js';
 
 const KEYWORDS = [
   {
-    words: ['scheur', 'gescheurd', 'kapot', 'knip'],
-    text: 'Papier scheurt meestal als je te hard aan een vouw trekt of dezelfde vouw vaak heen en weer buigt. Neem een nieuw vel als de scheur bij een belangrijke vouw zit, en strijk vouwen voortaan één keer scherp aan.',
-    followUp: 'Op welke plek scheurde het papier?',
+    words: ['vallei', 'dal', 'naar binnen', 'scherp', 'vleugel', 'druk'],
+    text: 'Deze valley fold voelt nog wat te hard of te ruw aan. Laat de binnenkant juist zacht tegen elkaar leggen en controleer de vouw nogmaals aan de hand van de kraanvogelvideo.',
+    followUp: 'Was de vouw te strak of te los?',
   },
   {
-    words: ['scheef', 'niet symmetrisch', 'asymmetrisch', 'ongelijk', 'verschil'],
-    text: 'Scheefheid begint vaak bij de eerste vouwen. Controleer of de hoeken precies op elkaar lagen en of de vouwlijnen in het midden kruisen. Corrigeer een kleine afwijking liever meteen dan pas aan het einde.',
-    followUp: 'Zie je de afwijking al in de eerste vouwen, of ontstaat die later?',
+    words: ['berg', 'omhoog', 'buiten', 'contour', 'snavel', 'staart'],
+    text: 'Bij een mountain fold helpt het om de contour eerst heel licht te markeren. Dan blijft de vorm scherp zonder dat het papier scheurt.',
+    followUp: 'Wil je de bergvouw nog in een kleine stap voor de kraanvogel zien?',
   },
   {
-    words: ['plat', 'klapt niet', 'klapt terug', 'wil niet', 'niet dicht'],
-    text: 'Als het papier niet plat wil, liggen een of meer hulpvouwen waarschijnlijk niet scherp genoeg of staan ze de verkeerde kant op. Open het werk en strijk de vouwlijnen opnieuw aan, van het midden naar buiten.',
-    followUp: 'Welke vouw wilde niet meewerken?',
+    words: ['symmetrie', 'links', 'rechts', 'scheef', 'midden', 'even'],
+    text: 'Controleer beide vleugels tegelijk. Kleine asymmetrie aan één kant blijft vaak zichtbaar in het hele model.',
+    followUp: 'Zit het probleem vooral links of rechts?',
   },
   {
-    words: ['vouwlijn', 'scherp', 'knik', 'aanstrijken'],
-    text: 'Strijk een vouw met je nagel of een vouwbeen aan, van het midden naar de rand. Een scherpe vouwlijn maakt latere stappen veel eenvoudiger.',
+    words: ['hoek', 'punt', 'rand', 'vleugel', 'snavel', 'staart'],
+    text: 'Je zit dicht bij de juiste vorm. Maak de buitenste contour nog iets scherper en vergelijk dat daarna weer met de referentievideo.',
+    followUp: 'Welke hoek of rand valt het meest op?',
   },
   {
-    words: ['dal', 'berg', 'welke kant', 'richting'],
-    text: 'Een dalvouw vouw je naar je toe (een V), een bergvouw van je af (een omgekeerde V). Kijk in de demonstratie naar welke kant het papier beweegt.',
-    followUp: 'Gaat het om een vouw uit de huidige stap?',
-  },
-  {
-    words: ['papier', 'welk', 'dik', 'dun', 'maat'],
-    text: 'Voor een kraanvogel werkt dun, vierkant origamipapier van 15 × 15 cm het best. Dik papier is lastig bij de omvouwen aan het einde.',
-  },
-  {
-    words: ['tijd', 'lang', 'duurt', 'snel'],
-    text: 'Neem er de tijd voor. Als beginner duurt elke stap vaak langer dan de schatting. Je kunt altijd pauzeren en later verder gaan.',
+    words: ['papier', 'scheur', 'krimp', 'kreukel', 'vouw'],
+    text: 'Neem even een rustmoment en bekijk de vouw van dichtbij. Een nette kraanvogel ontstaat vaak door kleine, gecontroleerde vouwen in plaats van een harde druk.',
   },
 ];
 
 const FALLBACKS = [
-  'Dat kan ik zo niet goed beoordelen: ik zie je papier niet. Kun je beschrijven wat je ziet of voelt? Dan denk ik graag met je mee.',
-  'Ik wil je daar liever niets onzekers over vertellen. Vertel wat je precies probeerde en wat er gebeurde.',
+  'Ik zie nog niet precies wat je aan de vouw wilt verbeteren. Laat me weten waar de kraanvogel in de video anders is dan op jouw papier.',
+  'Dat kan ik niet alleen uit de omschrijving bepalen. Vergelijk één duidelijke plek met de video en dan kunnen we focussen op de afwijking.',
 ];
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function localReply({ kind, step, question = '', history = [] }) {
   if (kind === 'welcome') {
-    return { simulated: true, text: `We werken aan “${step.title}”. Neem de tijd: je bepaalt zelf het tempo. Bekijk de demonstratie, probeer het uit en vraag me wat je wilt.` };
+    return { simulated: true, text: `We werken aan “${step.title}”. Je bepaalt zelf het tempo. Upload eerst een bestaande kraanvogelvideo, vergelijk daarna de vouw met de referentie en vraag me wat je wilt.` };
   }
   if (kind === 'explain') {
     return { simulated: true, text: step.easier, followUp: 'Is dit duidelijker, of zal ik een onderdeel nog anders uitleggen?' };

@@ -1,7 +1,7 @@
 // Lokale staat met localStorage. Pure logica staat apart zodat ze testbaar is.
 import { STEPS } from './data.js';
 
-export const STORAGE_KEY = 'atelier-maat:v1';
+export const STORAGE_KEY = 'applied-research-agentic-interface:v1';
 
 export function defaultState() {
   return {

@@ -498,7 +498,7 @@ let chain = Promise.resolve();
 let pending = 0;
 function talk(step, kind, question = '') {
   pending++;
-  chain = chain.then(() => talkNow(step, kind, question)).finally(() => { pending--; });
+  chain = chain.then(() => talkNow(step, kind, question));
   return chain;
 }
 
@@ -513,6 +513,8 @@ async function talkNow(step, kind, question = '') {
     state = appendChat(state, step.id, [{ from: 'coach', kind, text: reply.text, followUp: reply.followUp, simulated: reply.simulated, notice: reply.notice }]);
   } catch {
     state = appendChat(state, step.id, [{ from: 'coach', simulated: true, text: 'Er ging iets mis bij de begeleider. Probeer het nog eens.' }]);
+  } finally {
+    pending = Math.max(0, pending - 1); // eerst bijwerken, dan pas tekenen
   }
   persist();
   if (route().id === step.id) renderCoachLog(step);
