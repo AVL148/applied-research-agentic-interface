@@ -11,6 +11,8 @@ export function defaultState() {
     saved: ['t1'], // opgeslagen technieken
     recent: [2], // recent bekeken demonstraties (stap-id's)
     chats: {}, // { [stapId]: [{ from, text }] }
+    video: null, // { name, size, type, duration } van de geüploade video (het bestand zelf staat in IndexedDB)
+    analysis: null, // { source: 'ai'|'sample', summary, warnings, segments: [...], adopted }
   };
 }
 
@@ -81,4 +83,42 @@ export function filterTechniques(list, { query = '', craft = 'Alle', level = 'Al
     if (!q) return true;
     return [t.name, t.description, t.material, t.craft].join(' ').toLowerCase().includes(q);
   });
+}
+
+/* ---------- Video en analyse ---------- */
+
+export function setVideoMeta(state, meta) {
+  // Een nieuwe video maakt een oude analyse ongeldig.
+  return { ...state, video: meta, analysis: null };
+}
+
+export function clearVideo(state) {
+  return { ...state, video: null, analysis: null };
+}
+
+export function setAnalysis(state, analysis) {
+  const segments = analysis.segments.map((s, i) => ({ id: `s${i + 1}`, ...s }));
+  return { ...state, analysis: { ...analysis, segments, adopted: false } };
+}
+
+export function setSegmentStep(state, segmentId, stepId) {
+  if (!state.analysis) return state;
+  const segments = state.analysis.segments.map((s) => (s.id === segmentId ? { ...s, stepId: stepId || null } : s));
+  return { ...state, analysis: { ...state.analysis, segments, adopted: false } };
+}
+
+// De analyse telt pas mee in het leerpad nadat de gebruiker dit bevestigt.
+export function adoptAnalysis(state) {
+  if (!state.analysis) return state;
+  return { ...state, analysis: { ...state.analysis, adopted: true } };
+}
+
+export function discardAnalysis(state) {
+  return { ...state, analysis: null };
+}
+
+export function segmentForStep(state, stepId) {
+  const a = state.analysis;
+  if (!a || !a.adopted) return null;
+  return a.segments.find((s) => s.stepId === stepId) || null;
 }
