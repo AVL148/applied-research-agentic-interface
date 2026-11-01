@@ -103,19 +103,18 @@ export async function extractFrames(blob, { count = 10, maxWidth = 512, quality 
 
 // Voorbeeldanalyse zonder AI: duidelijk gemarkeerd als gesimuleerd, niet gebaseerd op de video.
 export function sampleAnalysis(duration, steps) {
-  const n = steps.length;
-  const segments = steps.map((s, i) => ({
-    start: Math.round(((i * duration) / n) * 10) / 10,
-    end: Math.round((((i + 1) * duration) / n) * 10) / 10,
+  const segments = steps.map((s) => ({
+    start: Math.min(s.video.start, Math.max(0, duration - 1)),
+    end: s.video.end == null ? duration : Math.min(s.video.end, duration),
     title: s.title,
-    description: 'Voorbeeldfragment: gelijkmatig verdeeld over de video. Dit is niet gebaseerd op de inhoud van jouw video.',
+    description: 'Vaste indeling van de referentievideo. Dit is niet gebaseerd op een analyse van jouw video.',
     tip: '',
     stepId: s.id,
     uncertain: true,
   }));
   return {
     source: 'sample',
-    summary: 'Gesimuleerde voorbeeldanalyse: de fragmenten zijn alleen gelijkmatig verdeeld en zeggen niets over wat er in je video gebeurt. Verbind de AI voor een echte analyse.',
+    summary: 'Gesimuleerde voorbeeldanalyse: de fragmenten volgen de vaste indeling en zeggen niets over wat er in je video gebeurt. Verbind de AI voor een echte analyse.',
     warnings: ['Dit is een voorbeeld en geen AI-analyse.'],
     framesUsed: 0,
     segments,

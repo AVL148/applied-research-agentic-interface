@@ -130,14 +130,9 @@ export function discardAnalysis(state) {
   return { ...state, analysis: null };
 }
 
-// Een door de gebruiker bevestigde AI-analyse gaat voor; anders geldt de vaste indeling
-// van de referentievideo (zodra er een video is).
+// De vaste indeling van de referentievideo (data.js) bepaalt altijd het fragment per stap,
+// zodra er een video is. De AI-analyse blijft een extra overzicht en verandert de tijden niet.
 export function segmentForStep(state, stepId) {
-  const a = state.analysis;
-  if (a && a.adopted) {
-    const hit = a.segments.find((s) => s.stepId === stepId);
-    if (hit) return hit;
-  }
   return referenceSegment(state, stepId);
 }
 

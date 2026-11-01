@@ -72,7 +72,7 @@ test('video-analyse telt pas mee na bevestiging door de gebruiker', () => {
   assert.equal(segmentForStep(s, 3).source, 'reference', 'niet overgenomen analyse = vaste indeling');
   s = setSegmentStep(s, 's3', 5);
   s = adoptAnalysis(s);
-  assert.equal(segmentForStep(s, 5).id, 's3');
+  assert.equal(segmentForStep(s, 5).source, 'reference', 'vaste indeling blijft gelden na bevestigen');
   s = setSegmentStep(s, 's3', 4);
   assert.equal(s.analysis.adopted, false, 'aanpassen vraagt opnieuw bevestiging');
   assert.equal(clearVideo(s).analysis, null);
@@ -86,6 +86,7 @@ test('voorbeeldanalyse is duidelijk gemarkeerd als gesimuleerd', () => {
   assert.ok(a.segments.every((x) => x.uncertain));
   assert.match(a.summary, /gesimuleerd/i);
   assert.equal(a.segments.at(-1).end, 100);
+  assert.deepEqual([sampleAnalysis(900, STEPS).segments[2].start, sampleAnalysis(900, STEPS).segments[2].end], [160, 340]);
 });
 
 test('coach valt zonder server terug op voorbeeldantwoorden en blijft eerlijk', async () => {
