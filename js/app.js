@@ -1,4 +1,4 @@
-import { APP_NAME, PROJECT, STEPS, TECHNIQUES, FILTERS } from './data.js';
+import { APP_NAME, PROJECT, STEPS, TECHNIQUES, FILTERS, VIDEO_SPEED } from './data.js';
 import {
   loadState, saveState, resetState, currentStepId, stepStatus, completeStep,
   toggleSaved, markViewed, appendChat, filterTechniques,
@@ -153,7 +153,7 @@ function renderDashboard() {
     </section>
 
     <section class="card project-card" aria-labelledby="active-title">
-      <div class="project-art">${paperArt(Math.min(done + 1, 8))}</div>
+      <div class="project-art">${paperArt(Math.min(done + 1, STEPS.length))}</div>
       <div class="project-body">
         <p class="eyebrow">Actief project</p>
         <h2 id="active-title">${esc(PROJECT.title)}</h2>
@@ -201,7 +201,7 @@ function renderProject() {
 
   main.innerHTML = `
     <section class="project-head">
-      <div class="project-art small">${paperArt(Math.min(done + 1, 8))}</div>
+      <div class="project-art small">${paperArt(Math.min(done + 1, STEPS.length))}</div>
       <div>
         <p class="eyebrow">Project · ${esc(PROJECT.level)} · ${esc(PROJECT.totalTime)}</p>
         <h1>${esc(PROJECT.title)}</h1>
@@ -314,7 +314,7 @@ function demoMarkup(step) {
       <div class="demo-info">
         <h2 id="demo-title" class="h4">${esc(step.demoTitle)}</h2>
         ${seg
-          ? `<p><strong>Fragment uit jouw video:</strong> ${esc(seg.title)} (${fmt(seg.start)}–${fmt(seg.end)}) <span class="badge soft">${state.analysis.source === 'ai' ? 'AI-analyse' : 'voorbeeld'}</span></p>
+          ? `<p><strong>Fragment uit de video:</strong> ${esc(seg.title)} (${fmt(seg.start)}–${fmt(seg.end)}) <span class="badge soft">${seg.source === 'reference' ? 'vaste indeling' : state.analysis?.source === 'ai' ? 'AI-analyse' : 'voorbeeld'}</span> · snelheid ${VIDEO_SPEED}×</p>
              ${seg.description ? `<p class="muted">${esc(seg.description)}</p>` : ''}`
           : `<p class="muted">Deze stap is nog niet aan een fragment van je video gekoppeld. <a class="link" href="#/video">Naar video-analyse</a></p>`}
       </div>
@@ -399,7 +399,7 @@ function renderTutorial(step) {
       </aside>
     </div>`;
 
-  bindVideo($('#vid'));
+  bindVideo($('#vid'), segmentForStep(state, step.id));
   renderFinish(step);
   renderCoachLog(step);
   getAiStatus().then(updateCoachInfo);
@@ -423,11 +423,26 @@ function updateCoachInfo(status) {
 
 /* Video-element: speel een fragment en stop aan het einde */
 
-function bindVideo(vid) {
+function bindVideo(vid, seg = null) {
   if (!vid) return;
+  vid.defaultPlaybackRate = VIDEO_SPEED;
+  const start = () => {
+    vid.playbackRate = VIDEO_SPEED;
+    if (seg) {
+      vid.currentTime = seg.start;
+      vid.dataset.end = String(seg.end);
+    }
+  };
+  if (vid.readyState >= 1) start(); else vid.addEventListener('loadedmetadata', start, { once: true });
+  vid.addEventListener('ratechange', () => { /* gebruiker mag de snelheid zelf aanpassen */ });
   vid.addEventListener('timeupdate', () => {
     const end = Number(vid.dataset.end);
     if (end && vid.currentTime >= end) { vid.pause(); vid.dataset.end = ''; }
+  });
+  // Opnieuw afspelen na het einde van het fragment: niet meteen weer stoppen.
+  vid.addEventListener('play', () => {
+    const end = Number(vid.dataset.end);
+    if (end && vid.currentTime >= end - 0.3) vid.dataset.end = '';
   });
 }
 
@@ -436,6 +451,7 @@ function playSegment(start, end) {
   if (!vid) return;
   vid.dataset.end = String(end);
   vid.currentTime = start;
+  vid.playbackRate = VIDEO_SPEED;
   vid.play().catch(() => {});
 }
 

@@ -11,9 +11,14 @@ export const PROJECT = {
   totalTime: 'Video + AI review',
 };
 
+// Vaste indeling van de referentievideo (seconden). end: null = tot het einde van de video.
+// 1: 0:00–1:01 · 2: 1:01–2:40 · 3: 2:40–5:40 · 4: 5:40–8:00 · 5: 8:00–10:30 · 6: 10:30–12:40 · 7: 12:40–einde
+export const VIDEO_SPEED = 2;
+
 export const STEPS = [
   {
     id: 1,
+    video: { start: 0, end: 61 },
     title: 'Papier en referentievideo voorbereiden',
     minutes: 15,
     demoTitle: 'Start van de kraanvogel',
@@ -38,6 +43,7 @@ export const STEPS = [
   },
   {
     id: 2,
+    video: { start: 61, end: 160 },
     title: 'Basisvorm en middenlijn leggen',
     minutes: 20,
     demoTitle: 'Middenlijn vastleggen',
@@ -62,6 +68,7 @@ export const STEPS = [
   },
   {
     id: 3,
+    video: { start: 160, end: 340 },
     title: 'Valley fold aanbrengen',
     minutes: 25,
     demoTitle: 'Valley fold voor de vleugels',
@@ -86,6 +93,7 @@ export const STEPS = [
   },
   {
     id: 4,
+    video: { start: 340, end: 480 },
     title: 'Mountain fold opbouwen',
     minutes: 30,
     demoTitle: 'Bergvouw voor de contour',
@@ -110,6 +118,7 @@ export const STEPS = [
   },
   {
     id: 5,
+    video: { start: 480, end: 630 },
     title: 'Reverse fold en vleugelvorm maken',
     minutes: 35,
     demoTitle: 'Vleugel en contour draaien',
@@ -134,30 +143,7 @@ export const STEPS = [
   },
   {
     id: 6,
-    title: 'Zijvleugels en symmetrie controleren',
-    minutes: 25,
-    demoTitle: 'Symmetrie in balans',
-    demoSeconds: 64,
-    demoCaption: 'Controleer of beide vleugels even groot en symmetrisch zijn, net als in de standaard kraanvogelvideo.',
-    instructions: [
-      'Maak de vouwen aan beide zijden even groot en symmetrisch.',
-      'Vergelijk de beide vleugels met elkaar en met de referentie.',
-      'Laat de vorm rusten en controleer opnieuw of de lijnen parallel lopen.',
-    ],
-    tip: 'Symmetrie werkt het best als je beide zijden gelijktijdig bekijkt.',
-    easier:
-      'Je bekijkt beide vleugels alsof je ze tegelijk maakt in een vaste, evenwichtige beweging.',
-    hints: [
-      'Kijk langs de middenlijn om scheefheid te zien.',
-      'Doe kleine correcties in plaats van grote herzieningen.',
-    ],
-    reflection: {
-      question: 'Welke kant was het lastigst om symmetrisch te houden?',
-      options: ['Links', 'Rechts', 'Beide', 'Geen verschil'],
-    },
-  },
-  {
-    id: 7,
+    video: { start: 630, end: 760 },
     title: 'Hoofd, snavel en details verfijnen',
     minutes: 20,
     demoTitle: 'Laatste details van de kraanvogel',
@@ -181,7 +167,8 @@ export const STEPS = [
     },
   },
   {
-    id: 8,
+    id: 7,
+    video: { start: 760, end: null },
     title: 'Eindresultaat toetsen en feedback verzamelen',
     minutes: 20,
     demoTitle: 'Review en vergelijking',

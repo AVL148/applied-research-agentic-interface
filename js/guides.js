@@ -347,14 +347,11 @@ export const PLANS = {
     { title: 'Hals en staart', text: 'Duw beide punten naar binnen: de ene wordt hals, de andere staart.', shapes: SHAPES.neckTail() },
   ],
   6: [
-    { title: 'Vleugels uit elkaar', text: 'Trek de vleugels langzaam omlaag tot ze horizontaal staan.', shapes: SHAPES.wingsOpen() },
-    { title: 'Symmetrie controleren', text: 'Kijk van boven langs de middenlijn: links en rechts moeten gelijk zijn.', shapes: SHAPES.symmetry() },
-  ],
-  7: [
     { title: 'Kop', text: 'Vouw de punt van de hals met een kleine reverse fold om.', shapes: SHAPES.head() },
+    { title: 'Vleugels uit elkaar', text: 'Trek de vleugels langzaam omlaag tot ze horizontaal staan en kijk of links en rechts gelijk zijn.', shapes: SHAPES.wingsOpen() },
     { title: 'Blaas hem op', text: 'Trek de vleugels zacht naar buiten en druk de buik uit.', shapes: SHAPES.crane() },
   ],
-  8: [
+  7: [
     { title: 'Vergelijk', text: 'Leg je kraanvogel naast de referentie.', shapes: SHAPES.compare() },
     { title: 'Klaar', text: 'Noteer wat goed ging en welke stap je moeilijk vond.', shapes: SHAPES.crane() },
   ],

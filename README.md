@@ -17,7 +17,7 @@ Dubbelklikken op `index.html` werkt niet (browsers blokkeren JavaScript-modules 
 
 ## Wat de interface doet
 
-- **Dashboard, project en leerpad** met 8 stappen, voortgang en reflectie per stap.
+- **Dashboard, project en leerpad** met 7 stappen, voortgang en reflectie per stap.
 - **Video-analyse** (menu: *Video-analyse*): upload een bestaande video, laat de AI fragmenten voorstellen, koppel ze aan stappen en neem ze pas over nadat je dat bevestigt. In een stap speel je dan het bijbehorende fragment af.
 - **Begeleider** per stap: *Leg anders uit*, *Geef een hint* en een eigen vraag.
 - **Technieken**: klik op een techniek voor een stappenplan met tekeningen (wat je nodig hebt, stap voor stap, veelgemaakte fouten, bronnen).

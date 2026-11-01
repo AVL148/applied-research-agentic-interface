@@ -5,6 +5,7 @@ export const STORAGE_KEY = 'applied-research-agentic-interface:v1';
 
 export function defaultState() {
   return {
+    schema: 2,
     // Beginsituatie van de demo: stap 1 en 2 zijn al klaar, stap 3 is actief.
     completed: [1, 2],
     reflections: {}, // { [stapId]: { choice, note } | { skipped: true } }
@@ -21,10 +22,22 @@ export function loadState(storage = globalThis.localStorage) {
     const raw = storage?.getItem(STORAGE_KEY);
     if (!raw) return defaultState();
     const parsed = JSON.parse(raw);
-    return { ...defaultState(), ...parsed };
+    return { ...defaultState(), ...(parsed.schema === 2 ? parsed : migrateV1(parsed)) };
   } catch {
     return defaultState();
   }
+}
+
+// Oude indeling had 8 stappen. Stap 6 (symmetrie) is vervallen; 7 en 8 werden 6 en 7.
+const OLD_TO_NEW = { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 7: 6, 8: 7 };
+function migrateV1(old) {
+  const ids = (list) => [...new Set((list || []).map((i) => OLD_TO_NEW[i]).filter(Boolean))].sort((a, b) => a - b);
+  const keys = (obj) => Object.fromEntries(Object.entries(obj || {}).filter(([k]) => OLD_TO_NEW[k]).map(([k, v]) => [OLD_TO_NEW[k], v]));
+  const out = { ...old, schema: 2, completed: ids(old.completed), recent: ids(old.recent), reflections: keys(old.reflections), chats: keys(old.chats) };
+  if (old.analysis?.segments) {
+    out.analysis = { ...old.analysis, segments: old.analysis.segments.map((s) => ({ ...s, stepId: OLD_TO_NEW[s.stepId] ?? null })) };
+  }
+  return out;
 }
 
 export function saveState(state, storage = globalThis.localStorage) {
@@ -117,8 +130,22 @@ export function discardAnalysis(state) {
   return { ...state, analysis: null };
 }
 
+// Een door de gebruiker bevestigde AI-analyse gaat voor; anders geldt de vaste indeling
+// van de referentievideo (zodra er een video is).
 export function segmentForStep(state, stepId) {
   const a = state.analysis;
-  if (!a || !a.adopted) return null;
-  return a.segments.find((s) => s.stepId === stepId) || null;
+  if (a && a.adopted) {
+    const hit = a.segments.find((s) => s.stepId === stepId);
+    if (hit) return hit;
+  }
+  return referenceSegment(state, stepId);
+}
+
+export function referenceSegment(state, stepId) {
+  const step = STEPS.find((s) => s.id === stepId);
+  const dur = state.video?.duration;
+  if (!step?.video || !(dur > 0)) return null;
+  const start = Math.min(step.video.start, Math.max(0, dur - 1));
+  const end = step.video.end == null ? dur : Math.min(step.video.end, dur);
+  return { id: `ref${stepId}`, stepId, start, end, title: step.title, description: '', source: 'reference' };
 }

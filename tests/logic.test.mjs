@@ -17,9 +17,9 @@ test('naam en project zijn de origami-onderzoeksversie', () => {
   assert.match(STORAGE_KEY, /applied-research-agentic-interface/);
 });
 
-test('startsituatie: stap 3 van 8 is actief', () => {
+test('startsituatie: stap 3 van 7 is actief', () => {
   const s = defaultState();
-  assert.equal(STEPS.length, 8);
+  assert.equal(STEPS.length, 7);
   assert.equal(currentStepId(s), 3);
   assert.equal(stepStatus(s, 1), 'done');
   assert.equal(stepStatus(s, 3), 'current');
@@ -69,7 +69,7 @@ test('video-analyse telt pas mee na bevestiging door de gebruiker', () => {
   assert.equal(s.analysis, null);
   s = setAnalysis(s, sampleAnalysis(80, STEPS));
   assert.equal(s.analysis.adopted, false);
-  assert.equal(segmentForStep(s, 3), null, 'niet overgenomen = niet gebruikt');
+  assert.equal(segmentForStep(s, 3).source, 'reference', 'niet overgenomen analyse = vaste indeling');
   s = setSegmentStep(s, 's3', 5);
   s = adoptAnalysis(s);
   assert.equal(segmentForStep(s, 5).id, 's3');
@@ -104,4 +104,25 @@ test('elke stap heeft volledige inhoud', () => {
     assert.ok(s.instructions.length >= 3 && s.tip && s.easier && s.hints.length >= 2, `stap ${s.id}`);
     assert.ok(s.reflection.options.length >= 3, `stap ${s.id} reflectie`);
   }
+});
+
+test('vaste videoindeling: tijden per stap, stap 6 vervallen', () => {
+  const times = STEPS.map((x) => [x.video.start, x.video.end]);
+  assert.deepEqual(times, [[0, 61], [61, 160], [160, 340], [340, 480], [480, 630], [630, 760], [760, null]]);
+  assert.ok(!STEPS.some((x) => /symmetrie controleren/i.test(x.title)));
+  const s = setVideoMeta(defaultState(), { name: 'k.mp4', size: 1, type: 'video/mp4', duration: 900 });
+  assert.deepEqual([segmentForStep(s, 3).start, segmentForStep(s, 3).end], [160, 340]);
+  assert.equal(segmentForStep(s, 7).end, 900, 'laatste fragment loopt tot het einde');
+  assert.equal(segmentForStep(defaultState(), 3), null, 'zonder video geen fragment');
+  const short = setVideoMeta(defaultState(), { name: 'k.mp4', size: 1, type: 'video/mp4', duration: 100 });
+  assert.ok(segmentForStep(short, 7).start < 100, 'tijd blijft binnen een korte video');
+});
+
+test('oude opgeslagen voortgang met 8 stappen wordt omgezet', () => {
+  const st = memory();
+  st.setItem(STORAGE_KEY, JSON.stringify({ completed: [1, 2, 3, 6, 7, 8], recent: [6, 8] }));
+  const s = loadState(st);
+  assert.deepEqual(s.completed, [1, 2, 3, 6, 7]);
+  assert.deepEqual(s.recent, [7]);
+  assert.equal(s.schema, 2);
 });
