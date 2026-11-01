@@ -314,7 +314,7 @@ function demoMarkup(step) {
       <div class="demo-info">
         <h2 id="demo-title" class="h4">${esc(step.demoTitle)}</h2>
         ${seg
-          ? `<p><strong>Fragment uit de video:</strong> ${esc(seg.title)} (${fmt(seg.start)}–${fmt(seg.end)}) <span class="badge soft">${seg.source === 'reference' ? 'vaste indeling' : state.analysis?.source === 'ai' ? 'AI-analyse' : 'voorbeeld'}</span> · snelheid ${VIDEO_SPEED}×</p>
+          ? `<p><strong>Fragment uit de video:</strong> ${esc(seg.title)} (${fmt(seg.start)}–${fmt(seg.end)}) <span class="badge soft">${seg.source === 'reference' ? 'vaste indeling' : state.analysis?.source === 'ai' ? 'AI-analyse' : 'voorbeeld'}</span></p>
              ${seg.description ? `<p class="muted">${esc(seg.description)}</p>` : ''}`
           : `<p class="muted">Deze stap is nog niet aan een fragment van je video gekoppeld. <a class="link" href="#/video">Naar video-analyse</a></p>`}
       </div>
