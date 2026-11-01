@@ -214,6 +214,7 @@ export const TECHNIQUES = [
   { id: 't5', name: 'Squash fold', craft: 'Origami', material: 'Papier', level: 'Gemiddeld', description: 'Een form van flattening die de vleugel en het lijf van de vogel afwerkt.' },
   { id: 't6', name: 'Petal fold', craft: 'Origami', material: 'Papier', level: 'Gevorderd', description: 'Een ronde, afgeronde vouw voor de vleugel- of snavelvorm van de kraanvogel.' },
   { id: 't7', name: 'Sink fold', craft: 'Origami', material: 'Papier', level: 'Gevorderd', description: 'Een ingedrukte vouw om de vorm van het lichaam of de vleugel te verdiepen.' },
+  { id: 't11', name: 'Preliminary base', craft: 'Origami', material: 'Papier', level: 'Beginner', description: 'De basisvorm waarmee de kraanvogel begint: diagonalen en middenlijnen vouwen en dan inklappen tot een vierkant met vier flappen.' },
   { id: 't8', name: 'Reference matching', craft: 'Research', material: 'Video', level: 'Beginner', description: 'De vouwstappen vergelijken met de video om afwijkingen te signaleren.' },
   { id: 't9', name: 'AI frame check', craft: 'Research', material: 'Video + prompts', level: 'Gemiddeld', description: 'Frame-analyses gebruiken om de juiste vouw- of contourfout te vinden.' },
   { id: 't10', name: 'Fold quality review', craft: 'Research', material: 'Video', level: 'Beginner', description: 'De eindkwaliteit beoordelen in vergelijking met de standaard kraanvogelvideo.' },

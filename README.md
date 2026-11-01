@@ -10,7 +10,7 @@ Vereist Node 18 of nieuwer. Er zijn geen dependencies en geen buildstap.
 
 ```bash
 npm start        # http://localhost:5173  (andere poort: PORT=8080 npm start)
-npm test         # 27 tests: logica, AI-laag en server
+npm test         # tests: logica, AI-laag, server en stappenplannen
 ```
 
 Dubbelklikken op `index.html` werkt niet (browsers blokkeren JavaScript-modules bij `file://`). Gebruik `npm start`.
@@ -20,7 +20,8 @@ Dubbelklikken op `index.html` werkt niet (browsers blokkeren JavaScript-modules 
 - **Dashboard, project en leerpad** met 8 stappen, voortgang en reflectie per stap.
 - **Video-analyse** (menu: *Video-analyse*): upload een bestaande video, laat de AI fragmenten voorstellen, koppel ze aan stappen en neem ze pas over nadat je dat bevestigt. In een stap speel je dan het bijbehorende fragment af.
 - **Begeleider** per stap: *Leg anders uit*, *Geef een hint* en een eigen vraag.
-- **Technieken** zoeken en opslaan.
+- **Technieken**: klik op een techniek voor een stappenplan met tekeningen (wat je nodig hebt, stap voor stap, veelgemaakte fouten, bronnen).
+- **Stappenplan zonder video**: elke projectstap heeft tekeningen die de vouw laten zien. De video-analyse is een extra.
 - Voortgang, gesprekken en de video blijven bewaard in je browser. *Demo resetten* wist alles.
 
 ## Een AI verbinden
@@ -56,6 +57,8 @@ Beperkingen die je in het onderzoek moet meewegen: de AI ziet losse beelden zond
 index.html          shell en dialoog
 css/styles.css      ontwerp, responsive
 js/data.js          project, stappen en technieken (origami-kraanvogel)
+js/diagrams.js      tekenbibliotheek voor vouwdiagrammen (SVG)
+js/guides.js        stappenplannen met tekeningen per techniek en per projectstap
 js/store.js         staat, localStorage, pure logica
 js/coach.js         begeleider: Claude via de server, anders voorbeeldantwoorden
 js/api.js           contact met de server (status, aanvragen)
@@ -74,6 +77,6 @@ tests/              node:test
 | Navigatie, voortgang, reflectie, opslag, technieken | Werkt echt, lokaal |
 | Video uploaden, bewaren, afspelen en fragmenten afspelen | Werkt echt, lokaal |
 | Coach en video-analyse met Claude | Werkt zodra de server een geldige `ANTHROPIC_API_KEY` heeft; getest met een nagemaakte Claude, nog niet met een echte sleutel |
-| Demonstratie zonder geüploade video | Placeholder met afspeelsimulatie, geen echte video |
+| Stappenplan zonder video | Zelf getekende diagrammen; de late stappen (hals, kop, vleugels) zijn schematisch |
 | Beeldanalyse van je eigen vouwwerk | Nog niet gebouwd |
 | Projectgeheugen en persoonlijke leeradviezen | Nog niet gebouwd |

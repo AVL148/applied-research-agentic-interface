@@ -6,6 +6,8 @@ import {
 } from './store.js';
 import { askCoach } from './coach.js';
 import { getAiStatus, postJson, resetStatusCache } from './api.js';
+import { GUIDES, PLANS } from './guides.js';
+import { drawing } from './diagrams.js';
 import { saveVideo, loadVideo, deleteVideo, readVideoInfo, extractFrames, sampleAnalysis } from './video.js';
 
 let state = loadState();
@@ -21,6 +23,7 @@ const ui = {
   note: '',
   search: { query: '', craft: 'Alle', level: 'Alle' },
   videoUrl: null,
+  plan: {},
   analyzing: false,
   status: '',
   statusIsError: false,
@@ -56,12 +59,13 @@ function route() {
   const hash = location.hash.replace(/^#\/?/, '');
   const [name, arg] = hash.split('/');
   if (name === 'stap') return { name: 'stap', id: Number(arg) };
+  if (name === 'techniek') return { name: 'techniek', id: arg };
   if (['project', 'video', 'zoeken', 'opgeslagen'].includes(name)) return { name };
   return { name: 'dashboard' };
 }
 
 function renderNav(r) {
-  const active = r.name === 'stap' ? 'project' : r.name;
+  const active = r.name === 'stap' ? 'project' : r.name === 'techniek' ? 'zoeken' : r.name;
   $('#nav').innerHTML = `<ul>${NAV.map(([href, label, key]) =>
     `<li><a href="${href}" ${key === active ? 'aria-current="page"' : ''}>${label}${key === 'opgeslagen' && state.saved.length ? ` <span class="count" aria-label="${state.saved.length} opgeslagen">${state.saved.length}</span>` : ''}</a></li>`).join('')}</ul>`;
 }
@@ -74,6 +78,9 @@ function render({ focus = true } = {}) {
     const step = stepById(r.id);
     if (!step) { location.hash = '#/project'; return; }
     renderTutorial(step);
+  } else if (r.name === 'techniek') {
+    if (!TECHNIQUES.find((t) => t.id === r.id)) { location.hash = '#/zoeken'; return; }
+    renderTechnique(r.id);
   } else if (r.name === 'project') renderProject();
   else if (r.name === 'video') renderVideoPage();
   else if (r.name === 'zoeken') renderSearch();
@@ -226,6 +233,77 @@ function renderProject() {
     </section>`;
 }
 
+/* ---------- Stappenplan met tekeningen ---------- */
+
+const plansFor = (key) => (key[0] === 't' ? GUIDES[key]?.steps : PLANS[Number(key.slice(1))]) || [];
+
+function stepperMarkup(key) {
+  const frames = plansFor(key);
+  if (!frames.length) return '';
+  const i = Math.max(0, Math.min(ui.plan[key] ?? 0, frames.length - 1));
+  const f = frames[i];
+  return `<div class="stepper" data-key="${key}">
+    <div class="sp-view">${drawing(f.shapes, `Tekening bij stap ${i + 1}: ${f.title}`)}</div>
+    <div class="sp-body">
+      <p class="eyebrow">Stap ${i + 1} van ${frames.length}</p>
+      <h3 class="h4">${esc(f.title)}</h3>
+      <p>${esc(f.text)}</p>
+      ${f.tip ? `<p class="tip"><strong>Tip:</strong> ${esc(f.tip)}</p>` : ''}
+      <div class="row">
+        <button type="button" class="btn" data-sp="prev" ${i === 0 ? 'disabled' : ''}>← Vorige</button>
+        <button type="button" class="btn btn-primary" data-sp="next" ${i === frames.length - 1 ? 'disabled' : ''}>Volgende →</button>
+      </div>
+    </div>
+    <ol class="sp-thumbs" aria-label="Alle stappen">${frames.map((fr, j) =>
+      `<li><button type="button" class="thumb ${j === i ? 'on' : ''}" data-sp="go" data-i="${j}" ${j === i ? 'aria-current="step"' : ''} aria-label="Stap ${j + 1}: ${esc(fr.title)}">${drawing(fr.shapes, '')}<span>${j + 1}</span></button></li>`).join('')}</ol>
+  </div>`;
+}
+
+function renderTechnique(id) {
+  const t = TECHNIQUES.find((x) => x.id === id);
+  const g = GUIDES[id];
+  const isSaved = state.saved.includes(id);
+  main.innerHTML = `
+    <nav class="crumbs" aria-label="Kruimelpad"><a href="#/zoeken">Technieken</a> <span aria-hidden="true">/</span> ${esc(t.name)}</nav>
+    <article class="guide">
+      <header>
+        <p class="eyebrow">${esc(t.craft)} · ${esc(t.level)} · ${esc(t.material)}</p>
+        <h1>${esc(t.name)}</h1>
+        <p class="lede">${esc(g ? g.goal : t.description)}</p>
+        <div class="row">
+          <button type="button" class="btn ${isSaved ? 'btn-on' : ''}" data-save="${t.id}" aria-pressed="${isSaved}">${isSaved ? '✓ Opgeslagen' : 'Opslaan'}</button>
+          <a class="btn btn-quiet" href="#/zoeken">← Alle technieken</a>
+        </div>
+      </header>
+      ${g ? `
+      <section class="card" aria-labelledby="needs-t"><h2 id="needs-t" class="h3">Wat heb je nodig?</h2>
+        <ul>${g.needs.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>
+      <section aria-labelledby="plan-t"><h2 id="plan-t" class="h3">Stappenplan</h2>${stepperMarkup(id)}</section>
+      <section class="card" aria-labelledby="mist-t"><h2 id="mist-t" class="h3">Veelgemaakte fouten</h2>
+        <ul>${g.mistakes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>
+      <section class="card small" aria-labelledby="src-t"><h2 id="src-t" class="h4">Bronnen</h2>
+        <p class="muted">De tekeningen zijn zelf gemaakt voor deze interface, in de gangbare diagramstijl: streeplijn is dalvouw, streep-puntlijn is bergvouw, pijl is de beweging.</p>
+        ${g.sources.length
+          ? `<ul>${g.sources.map((s) => `<li><a class="link" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join('')}</ul>`
+          : '<p class="muted">Dit is een onderzoekstechniek van dit prototype; er is geen externe bron voor.</p>'}
+      </section>` : `<p class="notice">Voor deze techniek is nog geen stappenplan.</p>`}
+    </article>`;
+}
+
+function moveStepper(btn) {
+  const box = btn.closest('.stepper');
+  if (!box) return;
+  const key = box.dataset.key;
+  const n = plansFor(key).length;
+  const cur = ui.plan[key] ?? 0;
+  const act = btn.dataset.sp;
+  ui.plan[key] = act === 'prev' ? Math.max(0, cur - 1) : act === 'next' ? Math.min(n - 1, cur + 1) : Number(btn.dataset.i);
+  box.outerHTML = stepperMarkup(key);
+  const again = main.querySelector(`.stepper[data-key="${key}"]`);
+  const target = act === 'go' ? again.querySelector(`.thumb[data-i="${ui.plan[key]}"]`) : again.querySelector(`[data-sp="${act}"]:not([disabled])`) || again.querySelector('.btn-primary');
+  target?.focus({ preventScroll: true });
+}
+
 /* ---------- 3-5. Tutorial, begeleider, reflectie ---------- */
 
 function demoMarkup(step) {
@@ -246,20 +324,10 @@ function demoMarkup(step) {
       </div>
     </section>`;
   }
-  return `<section class="demo" aria-labelledby="demo-title">
-    <div class="demo-stage" id="demo-stage"></div>
-    <div class="demo-info">
-      <h2 id="demo-title" class="h4">${esc(step.demoTitle)}</h2>
-      <p class="muted">Gesimuleerde demonstratie: dit is een placeholder, geen echte video. <a class="link" href="#/video">Upload je eigen video</a> om die hier te gebruiken.</p>
-    </div>
-    <div class="controls">
-      <button type="button" class="btn btn-primary" id="play" aria-pressed="false">▶ Afspelen</button>
-      <button type="button" class="btn" id="replay">↺ Herhaal deze demonstratie</button>
-      <label class="scrub"><span class="sr">Positie in de demonstratie</span>
-        <input type="range" id="scrub" min="0" max="${step.demoSeconds}" value="0" step="1" aria-valuetext="0:00 van ${fmt(step.demoSeconds)}">
-      </label>
-      <span class="time" id="time" aria-hidden="true">0:00 / ${fmt(step.demoSeconds)}</span>
-    </div>
+  return `<section class="card extra" aria-labelledby="demo-title">
+    <h2 id="demo-title" class="h4">Extra: je eigen video bij deze stap</h2>
+    <p class="muted">Het stappenplan hierboven werkt zonder video. Wil je toch een video erbij, upload die dan bij Video-analyse: de AI stelt een fragment voor deze stap voor.</p>
+    <a class="btn" href="#/video">Naar video-analyse</a>
   </section>`;
 }
 
@@ -286,7 +354,10 @@ function renderTutorial(step) {
           <h1>${esc(step.title)}</h1>
         </header>
 
-        ${demoMarkup(step)}
+        <section aria-labelledby="plan-title" class="plan">
+          <h2 id="plan-title" class="h3">Stappenplan met tekeningen</h2>
+          ${stepperMarkup('s' + step.id)}
+        </section>
 
         <section aria-labelledby="inst-title" class="card">
           <h2 id="inst-title" class="h3">Zo ga je te werk</h2>
@@ -295,6 +366,8 @@ function renderTutorial(step) {
           </ol>
           <p class="tip"><strong>Let op:</strong> ${esc(step.tip)}</p>
         </section>
+
+        ${demoMarkup(step)}
 
         <section id="finish" aria-labelledby="fin-title" class="card"></section>
 
@@ -326,7 +399,6 @@ function renderTutorial(step) {
       </aside>
     </div>`;
 
-  if ($('#demo-stage')) drawDemo(step);
   bindVideo($('#vid'));
   renderFinish(step);
   renderCoachLog(step);
@@ -704,7 +776,7 @@ function techCard(t, { inSaved = false } = {}) {
       <p>${esc(t.description)}</p>
     </div>
     <div class="row">
-      <button type="button" class="btn" data-open="${t.id}">Openen</button>
+      <a class="btn btn-primary" href="#/techniek/${t.id}">Stappenplan</a>
       ${inSaved
         ? `<button type="button" class="btn btn-danger" data-save="${t.id}" aria-label="Verwijder ${esc(t.name)} uit opgeslagen">Verwijderen</button>`
         : `<button type="button" class="btn ${isSaved ? 'btn-on' : ''}" data-save="${t.id}" aria-pressed="${isSaved}">${isSaved ? '✓ Opgeslagen' : 'Opslaan'}</button>`}
@@ -718,7 +790,7 @@ function renderSearch() {
     <section>
       <p class="eyebrow">Technieken</p>
       <h1>Zoek een techniek</h1>
-      <p class="lede">Voorbeeldtechnieken uit een lokale lijst. Er wordt niets van internet opgehaald.</p>
+      <p class="lede">Klik op een techniek voor een stappenplan met tekeningen: wat je nodig hebt, hoe je het vouwt en welke fouten vaak voorkomen.</p>
       <form id="filters" class="filters" role="search" aria-label="Technieken filteren">
         <div><label for="f-q">Zoeken</label><input id="f-q" type="search" value="${esc(s.query)}" placeholder="Naam, materiaal of omschrijving"></div>
         <div><label for="f-c">Soort</label><select id="f-c">${FILTERS.crafts.map((c) => `<option ${c === s.craft ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
@@ -789,6 +861,7 @@ function refreshLists() {
   if (r.name === 'zoeken') drawResults();
   else if (r.name === 'opgeslagen') renderSaved();
   else if (r.name === 'dashboard') renderDashboard();
+  else if (r.name === 'techniek') renderTechnique(r.id);
 }
 
 document.addEventListener('click', async (e) => {
@@ -814,6 +887,7 @@ document.addEventListener('click', async (e) => {
     $('#dialog').close();
     return;
   }
+  if (t.dataset.sp) return moveStepper(t);
   if (t.dataset.open) return openTechnique(t.dataset.open);
   if (t.dataset.save) {
     const id = t.dataset.save;
