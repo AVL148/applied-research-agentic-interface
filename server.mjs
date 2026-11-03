@@ -41,10 +41,10 @@ async function readJson(req) {
   const chunks = [];
   for await (const c of req) {
     size += c.length;
-    if (size > BODY_LIMIT) throw new AiError('too_large', 'Aanvraag is te groot.', 413);
+    if (size > BODY_LIMIT) throw new AiError('too_large', 'Request is too large.', 413);
     chunks.push(c);
   }
-  try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new AiError('bad_request', 'Ongeldige JSON.', 400); }
+  try { return JSON.parse(Buffer.concat(chunks).toString('utf8')); } catch { throw new AiError('bad_request', 'Invalid JSON.', 400); }
 }
 
 function send(res, status, obj, extra = {}) {
@@ -74,16 +74,16 @@ export function createApp(env = process.env, fetchImpl = fetch) {
           return send(res, 200, { connected: Boolean(c.key), model: c.key ? c.model : null }, cors);
         }
         if ((p === '/api/coach' || p === '/api/analyze-video') && req.method === 'POST') {
-          if (limited(req.socket.remoteAddress || 'x')) throw new AiError('rate_limited', 'Te veel aanvragen. Wacht even.', 429);
+          if (limited(req.socket.remoteAddress || 'x')) throw new AiError('rate_limited', 'Too many requests. Please wait a moment.', 429);
           const body = await readJson(req);
           const out = p === '/api/coach' ? await coachReply(cfg(), body, { fetchImpl }) : await analyseVideo(cfg(), body, { fetchImpl });
           return send(res, 200, out, cors);
         }
-        return send(res, 404, { error: 'not_found', message: 'Onbekend adres.' }, cors);
+        return send(res, 404, { error: 'not_found', message: 'Unknown address.' }, cors);
       } catch (e) {
         if (e instanceof AiError) return send(res, e.status, { error: e.code, message: e.message }, cors);
-        console.error('Onverwachte fout:', e?.message);
-        return send(res, 500, { error: 'server_error', message: 'Er ging iets mis op de server.' }, cors);
+        console.error('Unexpected error:', e?.message);
+        return send(res, 500, { error: 'server_error', message: 'Something went wrong on the server.' }, cors);
       }
     }
 
@@ -98,7 +98,7 @@ export function createApp(env = process.env, fetchImpl = fetch) {
       res.end(await readFile(file));
     } catch {
       res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-      res.end('Niet gevonden');
+      res.end('Not found');
     }
   });
 }
@@ -107,7 +107,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const port = Number(process.env.PORT) || 5173;
   createApp().listen(port, () => {
     const c = aiConfig();
-    console.log(`applied research agentic interface draait op http://localhost:${port}`);
-    console.log(c.key ? `AI verbonden (model: ${c.model})` : 'AI NIET verbonden: zet ANTHROPIC_API_KEY in .env om echte analyse en coach te gebruiken.');
+    console.log(`applied research agentic interface is running at http://localhost:${port}`);
+    console.log(c.key ? `AI connected (model: ${c.model})` : 'AI NOT connected: set ANTHROPIC_API_KEY in .env to use the real analysis and coach.');
   });
 }

@@ -57,10 +57,10 @@ test('upstream-fouten lekken geen details', async () => {
 });
 
 test('beelden worden gevalideerd', () => {
-  assert.throws(() => validateFrames(frames(1)), /minstens 2/);
-  assert.throws(() => validateFrames(frames(MAX_FRAMES + 1)), /Maximaal/);
-  assert.throws(() => validateFrames([{ time: 1, image: 'data:image/png;base64,AAAA' }, { time: 2, image: JPEG }]), /Ongeldig/);
-  assert.throws(() => validateFrames([{ time: -1, image: JPEG }, { time: 2, image: JPEG }]), /Ongeldig/);
+  assert.throws(() => validateFrames(frames(1)), /At least 2/);
+  assert.throws(() => validateFrames(frames(MAX_FRAMES + 1)), /At most/);
+  assert.throws(() => validateFrames([{ time: 1, image: 'data:image/png;base64,AAAA' }, { time: 2, image: JPEG }]), /Invalid/);
+  assert.throws(() => validateFrames([{ time: -1, image: JPEG }, { time: 2, image: JPEG }]), /Invalid/);
   assert.equal(validateFrames(frames(3)).length, 3);
 });
 
@@ -88,10 +88,10 @@ test('analyse: volledige keten met nep-Claude', async () => {
   const r = await analyseVideo(cfg, { duration: 20, frames: frames(4), project }, { fetchImpl: m.fetchImpl });
   assert.equal(r.segments.length, 2);
   assert.equal(r.framesUsed, 4);
-  assert.match(r.warnings[0], /losse beelden/);
+  assert.match(r.warnings[0], /single frames/);
   const imgs = m.calls[0].body.messages[0].content.filter((b) => b.type === 'image');
   assert.equal(imgs.length, 4);
-  assert.match(m.calls[0].body.system, /Verzin geen details/);
+  assert.match(m.calls[0].body.system, /Do not invent details/);
 });
 
 test('analyse: onleesbare AI-uitvoer geeft een duidelijke fout', async () => {

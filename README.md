@@ -1,82 +1,74 @@
 # applied research agentic interface
 
-Onderzoeksprototype rond **origami vouwen** (papieren kraanvogel). Een bestaande instructievideo wordt ondersteund door een agentic interface, om te onderzoeken of dat tot een beter vouwresultaat leidt dan een gewone video zonder extra aanwijzingen.
+Research prototype about **origami folding** (a paper crane). An existing instruction video is supported by an agentic interface, to investigate whether that leads to a better folding result than a normal video without extra guidance.
 
-De gebruiker bepaalt zelf het tempo en bevestigt zelf wanneer een stap klaar is. De begeleider legt uit, geeft hints en stelt voor; hij voert niets uit en wijzigt de voortgang nooit zelf.
+The user sets the pace and confirms when a step is done. The coach explains, gives hints and makes suggestions; it never carries anything out and never changes progress by itself.
 
-## Starten
+## Getting started
 
-Vereist Node 18 of nieuwer. Er zijn geen dependencies en geen buildstap.
+Requires Node 18 or newer. There are no dependencies and no build step.
 
 ```bash
-npm start        # http://localhost:5173  (andere poort: PORT=8080 npm start)
-npm test         # tests: logica, AI-laag, server en stappenplannen
+npm start        # http://localhost:5173  (other port: PORT=8080 npm start)
+npm test         # tests: logic, AI layer, server and step-by-step plans
 ```
 
-Dubbelklikken op `index.html` werkt niet (browsers blokkeren JavaScript-modules bij `file://`). Gebruik `npm start`.
+Double-clicking `index.html` does not work (browsers block JavaScript modules on `file://`). Use `npm start`.
 
-## Wat de interface doet
+## What the interface does
 
-- **Dashboard, project en leerpad** met 7 stappen, voortgang en reflectie per stap.
-- **Video-analyse** (menu: *Video-analyse*): upload een bestaande video, laat de AI fragmenten voorstellen, koppel ze aan stappen en neem ze pas over nadat je dat bevestigt. In een stap speel je dan het bijbehorende fragment af.
-- **Begeleider** per stap: *Leg anders uit*, *Geef een hint* en een eigen vraag.
-- **Technieken**: klik op een techniek voor een stappenplan met tekeningen (wat je nodig hebt, stap voor stap, veelgemaakte fouten, bronnen).
-- **Stappenplan zonder video**: elke projectstap heeft tekeningen die de vouw laten zien. De video-analyse is een extra.
-- Voortgang, gesprekken en de video blijven bewaard in je browser. *Demo resetten* wist alles.
+- **Dashboard, project and learning path** with 7 steps, progress and a reflection per step.
+- **Step-by-step plan with drawings** for every project step. It works without a video.
+- **Techniques**: click a technique for a step-by-step plan with drawings (what you need, step by step, common mistakes, sources).
+- **Video**: upload an existing video; every step jumps straight to its fixed segment, played at 2x speed. Fixed layout: 0:00–1:01, 1:01–2:40, 2:40–5:40, 5:40–8:00, 8:00–10:30, 10:30–12:40, 12:40–end.
+- **Video analysis** (extra): the AI suggests segments; you decide what to adopt.
+- **Coach** per step: *Explain differently*, *Give me a hint* and your own question.
+- Progress, conversations and the video are kept in your browser. *Reset demo* erases everything.
 
-## Een AI verbinden
+## Connecting an AI
 
-De browser praat nooit rechtstreeks met Claude en bevat geen sleutel. De server (`server.mjs`) roept de Claude API aan.
+The browser never talks to Claude directly and contains no key. The server (`server.mjs`) calls the Claude API.
 
-1. Maak een API-sleutel op console.anthropic.com.
-2. Kopieer `.env.example` naar `.env` en vul in: `ANTHROPIC_API_KEY=...`
-3. Start opnieuw met `npm start`. In de terminal staat dan `AI verbonden`.
+1. Create an API key at console.anthropic.com.
+2. Copy `.env.example` to `.env` and fill in: `ANTHROPIC_API_KEY=...`
+3. Restart with `npm start`. The terminal then says `AI connected`.
 
-`.env` staat in `.gitignore` en komt nooit in GitHub. Het model is in te stellen met `ANTHROPIC_MODEL`.
+`.env` is in `.gitignore` and never ends up on GitHub. The model can be set with `ANTHROPIC_MODEL`.
 
-Zonder sleutel blijft alles werken: de begeleider geeft dan gemarkeerde voorbeeldantwoorden en de video-analyse biedt een duidelijk als gesimuleerd gemarkeerde voorbeeldanalyse.
+Without a key everything keeps working: the coach gives marked sample answers and the video analysis offers a clearly marked simulated sample analysis.
 
-### Hoe de video-analyse werkt
+## Putting it online
 
-1. De video blijft in je browser (IndexedDB) en wordt niet geüpload.
-2. Bij **Analyseer video met AI** haalt de browser 10 losse beelden (JPEG, maximaal 512 px breed) uit de video.
-3. Alleen die beelden gaan via je server naar de Claude API (`POST /api/analyze-video`).
-4. De server controleert en begrenst het antwoord (tijden, stap-nummers, aantal fragmenten) voordat de browser het ziet.
+- **GitHub Pages** can only show the static page. No server runs there, so uploading, playing and the sample analysis work, but not the real AI.
+- For a real AI online, `server.mjs` has to run somewhere. Then set `API_BASE` in `js/config.js` to that server and `ALLOWED_ORIGIN` on the server to the address of your page.
+- Never put an API key in `js/`, `index.html` or the repository.
 
-Beperkingen die je in het onderzoek moet meewegen: de AI ziet losse beelden zonder geluid en zonder beweging ertussen. Fragmenten zijn voorstellen, geen vaststaande feiten, en de AI beoordeelt nooit een werkstuk dat hij niet gezien heeft.
-
-## Online zetten
-
-- **GitHub Pages** kan alleen de statische pagina tonen. Daar draait geen server, dus dan werken uploaden, afspelen en de voorbeeldanalyse, maar niet de echte AI. Pages is gratis voor publieke repositories.
-- Voor echte AI online moet `server.mjs` ergens draaien (bijvoorbeeld een kleine Node-hosting). Zet dan in `js/config.js` de `API_BASE` op die server en op de server `ALLOWED_ORIGIN` op het adres van je pagina.
-- Zet nooit een API-sleutel in `js/`, `index.html` of in de repository.
-
-## Structuur
+## Structure
 
 ```
-index.html          shell en dialoog
-css/styles.css      ontwerp, responsive
-js/data.js          project, stappen en technieken (origami-kraanvogel)
-js/diagrams.js      tekenbibliotheek voor vouwdiagrammen (SVG)
-js/guides.js        stappenplannen met tekeningen per techniek en per projectstap
-js/store.js         staat, localStorage, pure logica
-js/coach.js         begeleider: Claude via de server, anders voorbeeldantwoorden
-js/api.js           contact met de server (status, aanvragen)
-js/video.js         video bewaren, beelden uit de video halen, voorbeeldanalyse
-js/config.js        adres van de AI-server
-js/app.js           routing en schermen
-server.mjs          statische server + /api/status, /api/coach, /api/analyze-video
-server/ai.mjs       Claude API-aanroepen en validatie (alleen server)
+index.html          shell and dialog
+css/styles.css      design, responsive
+js/data.js          project, steps (with video segments) and techniques
+js/diagrams.js      drawing library for fold diagrams (SVG)
+js/guides.js        step-by-step plans with drawings per technique and project step
+js/store.js         state, localStorage, pure logic
+js/coach.js         coach: Claude via the server, otherwise sample answers
+js/api.js           contact with the server
+js/video.js         storing the video, taking frames, sample analysis
+js/config.js        address of the AI server
+js/app.js           routing and screens
+server.mjs          static server + /api/status, /api/coach, /api/analyze-video
+server/ai.mjs       Claude API calls and validation (server only)
 tests/              node:test
 ```
 
-## Wat echt is en wat gesimuleerd
+## What is real and what is simulated
 
-| Onderdeel | Status |
+| Part | Status |
 | --- | --- |
-| Navigatie, voortgang, reflectie, opslag, technieken | Werkt echt, lokaal |
-| Video uploaden, bewaren, afspelen en fragmenten afspelen | Werkt echt, lokaal |
-| Coach en video-analyse met Claude | Werkt zodra de server een geldige `ANTHROPIC_API_KEY` heeft; getest met een nagemaakte Claude, nog niet met een echte sleutel |
-| Stappenplan zonder video | Zelf getekende diagrammen; de late stappen (hals, kop, vleugels) zijn schematisch |
-| Beeldanalyse van je eigen vouwwerk | Nog niet gebouwd |
-| Projectgeheugen en persoonlijke leeradviezen | Nog niet gebouwd |
+| Navigation, progress, reflection, storage, techniques | Really works, locally |
+| Step-by-step plans with drawings | Drawn in code; the later steps (neck, head, wings) are schematic |
+| Uploading, storing and playing video, jumping to the fixed segment | Really works, locally |
+| Coach and video analysis with Claude | Works once the server has a valid `ANTHROPIC_API_KEY`; tested with a mock Claude, not yet with a real key |
+| Image analysis of your own folded model | Not built yet |
+| Project memory and personal learning advice | Not built yet |

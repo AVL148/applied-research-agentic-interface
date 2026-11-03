@@ -21,7 +21,7 @@ const ui = {
   phase: 'learn', // 'learn' | 'reflect' | 'done'
   choice: '',
   note: '',
-  search: { query: '', craft: 'Alle', level: 'Alle' },
+  search: { query: '', craft: 'All', level: 'All' },
   videoUrl: null,
   plan: {},
   analyzing: false,
@@ -50,41 +50,40 @@ function toast(msg) {
 const NAV = [
   ['#/', 'Dashboard', 'dashboard'],
   ['#/project', 'Project', 'project'],
-  ['#/video', 'Video-analyse', 'video'],
-  ['#/zoeken', 'Technieken', 'zoeken'],
-  ['#/opgeslagen', 'Opgeslagen', 'opgeslagen'],
+  ['#/video', 'Video analysis', 'video'],
+  ['#/techniques', 'Techniques', 'techniques'],
+  ['#/saved', 'Saved', 'saved'],
 ];
 
 function route() {
   const hash = location.hash.replace(/^#\/?/, '');
   const [name, arg] = hash.split('/');
-  if (name === 'stap') return { name: 'stap', id: Number(arg) };
-  if (name === 'techniek') return { name: 'techniek', id: arg };
-  if (['project', 'video', 'zoeken', 'opgeslagen'].includes(name)) return { name };
+  if (name === 'step') return { name: 'step', id: Number(arg) };
+  if (name === 'technique') return { name: 'technique', id: arg };
+  if (['project', 'video', 'techniques', 'saved'].includes(name)) return { name };
   return { name: 'dashboard' };
 }
 
 function renderNav(r) {
-  const active = r.name === 'stap' ? 'project' : r.name === 'techniek' ? 'zoeken' : r.name;
+  const active = r.name === 'step' ? 'project' : r.name === 'technique' ? 'techniques' : r.name;
   $('#nav').innerHTML = `<ul>${NAV.map(([href, label, key]) =>
-    `<li><a href="${href}" ${key === active ? 'aria-current="page"' : ''}>${label}${key === 'opgeslagen' && state.saved.length ? ` <span class="count" aria-label="${state.saved.length} opgeslagen">${state.saved.length}</span>` : ''}</a></li>`).join('')}</ul>`;
+    `<li><a href="${href}" ${key === active ? 'aria-current="page"' : ''}>${label}${key === 'opgeslagen' && state.saved.length ? ` <span class="count" aria-label="${state.saved.length} saved">${state.saved.length}</span>` : ''}</a></li>`).join('')}</ul>`;
 }
 
 function render({ focus = true } = {}) {
-  stopDemo();
   const r = route();
   renderNav(r);
-  if (r.name === 'stap') {
+  if (r.name === 'step') {
     const step = stepById(r.id);
     if (!step) { location.hash = '#/project'; return; }
     renderTutorial(step);
-  } else if (r.name === 'techniek') {
-    if (!TECHNIQUES.find((t) => t.id === r.id)) { location.hash = '#/zoeken'; return; }
+  } else if (r.name === 'technique') {
+    if (!TECHNIQUES.find((t) => t.id === r.id)) { location.hash = '#/techniques'; return; }
     renderTechnique(r.id);
   } else if (r.name === 'project') renderProject();
   else if (r.name === 'video') renderVideoPage();
-  else if (r.name === 'zoeken') renderSearch();
-  else if (r.name === 'opgeslagen') renderSaved();
+  else if (r.name === 'techniques') renderSearch();
+  else if (r.name === 'saved') renderSaved();
   else renderDashboard();
   if (focus) {
     const h = $('h1', main);
@@ -97,10 +96,10 @@ function render({ focus = true } = {}) {
 
 function progressBar(done, total) {
   const pct = Math.round((done / total) * 100);
-  return `<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}" aria-label="Voortgang: ${done} van ${total} stappen"><span style="width:${pct}%"></span></div>`;
+  return `<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${done}" aria-label="Progress: ${done} of ${total} steps"><span style="width:${pct}%"></span></div>`;
 }
 
-// Eenvoudige illustratie van de vouwfase (geen echte foto of video).
+// Simple illustration of the folding stage (not a real photo or video).
 function paperArt(stage = 1) {
   const crease = 'stroke="#8b6b4a" stroke-width="1.6" stroke-dasharray="5 4" fill="none"';
   const paper = 'fill="#e8c9a0" stroke="#8b6b4a" stroke-width="3" stroke-linejoin="round"';
@@ -125,15 +124,15 @@ function paperArt(stage = 1) {
       <polygon points="95,130 130,95 165,130 130,170" ${paper}/><polygon points="130,100 120,60 138,52 134,100" ${paper}/>
       <polygon points="128,170 108,176 132,150" ${paper}/>`;
   }
-  return `<svg viewBox="0 0 260 180" role="img" aria-label="Illustratie van de vouwfase (placeholder)" class="loom">${body}</svg>`;
+  return `<svg viewBox="0 0 260 180" role="img" aria-label="Illustration of the folding stage (placeholder)" class="loom">${body}</svg>`;
 }
 
 /* ---------- 1. Dashboard ---------- */
 
 function videoSummary() {
-  if (!state.video) return 'Nog geen video geüpload.';
+  if (!state.video) return 'No video uploaded yet.';
   const a = state.analysis;
-  const status = !a ? 'nog niet geanalyseerd' : a.adopted ? 'analyse gebruikt in je leerpad' : 'analyse klaar, nog niet overgenomen';
+  const status = !a ? 'not analysed yet' : a.adopted ? 'analysis used in your learning path' : 'analysis ready, not adopted yet';
   return `${esc(state.video.name)} · ${fmt(state.video.duration)} · ${status}`;
 }
 
@@ -147,93 +146,92 @@ function renderDashboard() {
 
   main.innerHTML = `
     <section class="hero">
-      <p class="eyebrow">Welkom terug</p>
-      <h1>Fijn dat je er weer bent.</h1>
-      <p class="lede">Je bepaalt zelf het tempo. Ga verder waar je gebleven was, of kijk eerst een uitleg terug.</p>
+      <p class="eyebrow">Welcome back</p>
+      <h1>Good to see you again.</h1>
+      <p class="lede">You set the pace. Carry on where you left off, or look back at an explanation first.</p>
     </section>
 
     <section class="card project-card" aria-labelledby="active-title">
       <div class="project-art">${paperArt(Math.min(done + 1, STEPS.length))}</div>
       <div class="project-body">
-        <p class="eyebrow">Actief project</p>
+        <p class="eyebrow">Active project</p>
         <h2 id="active-title">${esc(PROJECT.title)}</h2>
-        <p class="muted">${step ? `Stap ${step.id} van ${total}` : 'Alle stappen afgerond'} · ${done} van ${total} stappen klaar</p>
+        <p class="muted">${step ? `Step ${step.id} of ${total}` : 'All steps completed'} · ${done} of ${total} steps done</p>
         ${progressBar(done, total)}
-        <p class="next"><strong>Volgende actie:</strong> ${step ? `${esc(step.title)} (± ${step.minutes} min). ${esc(step.demoCaption)}` : 'Bekijk je project nog eens of begin met iets nieuws.'}</p>
+        <p class="next"><strong>Next action:</strong> ${step ? `${esc(step.title)}. ${esc(step.demoCaption)}` : 'Look at your project again or start something new.'}</p>
         <div class="row">
           ${step
-            ? `<a class="btn btn-primary" href="#/stap/${step.id}">Verder met mijn project</a>`
-            : `<a class="btn btn-primary" href="#/project">Naar mijn project</a>`}
-          <a class="btn" href="#/project">Bekijk leerpad</a>
+            ? `<a class="btn btn-primary" href="#/step/${step.id}">Continue my project</a>`
+            : `<a class="btn btn-primary" href="#/project">Go to my project</a>`}
+          <a class="btn" href="#/project">View learning path</a>
         </div>
       </div>
     </section>
 
     <div class="cards">
       <section class="card" aria-labelledby="video-title">
-        <h2 id="video-title" class="h3">Referentievideo</h2>
+        <h2 id="video-title" class="h3">Reference video</h2>
         <p class="${state.video ? '' : 'muted'}">${videoSummary()}</p>
-        <a class="link" href="#/video">${state.video ? 'Naar video-analyse' : 'Video uploaden en analyseren'}</a>
+        <a class="link" href="#/video">${state.video ? 'Go to video analysis' : 'Upload and analyse a video'}</a>
       </section>
       <section class="card" aria-labelledby="saved-title">
-        <h2 id="saved-title" class="h3">Opgeslagen technieken</h2>
+        <h2 id="saved-title" class="h3">Saved techniques</h2>
         ${savedTech.length
           ? `<ul class="plain">${savedTech.slice(0, 3).map((t) => `<li><strong>${esc(t.name)}</strong><span class="muted"> · ${esc(t.craft)}, ${esc(t.level)}</span></li>`).join('')}</ul>
-             <a class="link" href="#/opgeslagen">Alles bekijken</a>`
-          : `<p class="muted">Nog niets opgeslagen. <a class="link" href="#/zoeken">Zoek een techniek</a>.</p>`}
+             <a class="link" href="#/saved">View all</a>`
+          : `<p class="muted">Nothing saved yet. <a class="link" href="#/techniques">Find a technique</a>.</p>`}
       </section>
       <section class="card" aria-labelledby="recent-title">
-        <h2 id="recent-title" class="h3">Recent bekeken demonstraties</h2>
+        <h2 id="recent-title" class="h3">Recently viewed demonstrations</h2>
         ${recent.length
-          ? `<ul class="plain">${recent.map((s) => `<li><a class="link" href="#/stap/${s.id}">Stap ${s.id}: ${esc(s.demoTitle)}</a></li>`).join('')}</ul>`
-          : `<p class="muted">Je hebt nog geen demonstraties bekeken.</p>`}
+          ? `<ul class="plain">${recent.map((s) => `<li><a class="link" href="#/step/${s.id}">Step ${s.id}: ${esc(s.demoTitle)}</a></li>`).join('')}</ul>`
+          : `<p class="muted">You have not viewed any demonstrations yet.</p>`}
       </section>
     </div>`;
 }
 
-/* ---------- 2. Projectwerkruimte ---------- */
+/* ---------- 2. Project workspace ---------- */
 
 function renderProject() {
   const done = state.completed.length;
   const total = STEPS.length;
   const cur = currentStepId(state);
-  const minutesLeft = STEPS.filter((s) => !state.completed.includes(s.id)).reduce((a, s) => a + s.minutes, 0);
 
   main.innerHTML = `
     <section class="project-head">
       <div class="project-art small">${paperArt(Math.min(done + 1, STEPS.length))}</div>
       <div>
-        <p class="eyebrow">Project · ${esc(PROJECT.level)} · ${esc(PROJECT.totalTime)}</p>
+        <p class="eyebrow">Project · ${esc(PROJECT.level)}</p>
         <h1>${esc(PROJECT.title)}</h1>
         <p class="lede">${esc(PROJECT.summary)}</p>
         ${progressBar(done, total)}
-        <p class="muted">${done} van ${total} stappen klaar${cur ? ` · nog ± ${minutesLeft} min te gaan (voorbeeldschatting)` : ''}</p>
-        ${cur ? `<a class="btn btn-primary" href="#/stap/${cur}">${state.chats[cur] || state.recent.includes(cur) ? 'Stap voortzetten' : 'Stap starten'}: ${esc(stepById(cur).title)}</a>` : `<p class="notice ok">Alle stappen zijn afgerond. Goed gedaan!</p>`}
+        <p class="muted">${done} of ${total} steps done</p>
+        ${cur ? `<a class="btn btn-primary" href="#/step/${cur}">${state.chats[cur] || state.recent.includes(cur) ? 'Continue step' : 'Start step'}: ${esc(stepById(cur).title)}</a>` : `<p class="notice ok">All steps are completed. Well done!</p>`}
       </div>
     </section>
 
     <section aria-labelledby="path-title">
-      <h2 id="path-title" class="h3">Leerpad</h2>
+      <h2 id="path-title" class="h3">Learning path</h2>
       <ol class="path">
         ${STEPS.map((s) => {
           const st = stepStatus(state, s.id);
-          const label = { done: 'Afgerond', current: 'Huidige stap', upcoming: 'Komt nog' }[st];
-          const action = st === 'done' ? 'Opnieuw openen' : st === 'current' ? 'Starten' : 'Alvast bekijken';
+          const label = { done: 'Completed', current: 'Current step', upcoming: 'Coming up' }[st];
+          const action = st === 'done' ? 'Open again' : st === 'current' ? 'Start' : 'Preview';
           const seg = segmentForStep(state, s.id);
           return `<li class="path-item ${st}">
             <span class="dot" aria-hidden="true">${st === 'done' ? '✓' : s.id}</span>
             <div class="path-text">
               <strong>${esc(s.title)}</strong>
-              <span class="muted">${label} · ± ${s.minutes} min${seg ? ` · videofragment ${fmt(seg.start)}–${fmt(seg.end)}` : ''}</span>
+              <span class="muted">${label}${seg ? ` · video segment ${fmt(seg.start)}–${fmt(seg.end)}` : ''}</span>
             </div>
-            <a class="btn ${st === 'current' ? 'btn-primary' : ''}" href="#/stap/${s.id}" aria-label="${action}: ${esc(s.title)}">${action}</a>
+            <a class="btn ${st === 'current' ? 'btn-primary' : ''}" href="#/step/${s.id}" aria-label="${action}: ${esc(s.title)}">${action}</a>
           </li>`;
         }).join('')}
       </ol>
     </section>`;
 }
 
-/* ---------- Stappenplan met tekeningen ---------- */
+/* ---------- Step-by-step plan with drawings ---------- */
 
 const plansFor = (key) => (key[0] === 't' ? GUIDES[key]?.steps : PLANS[Number(key.slice(1))]) || [];
 
@@ -243,19 +241,19 @@ function stepperMarkup(key) {
   const i = Math.max(0, Math.min(ui.plan[key] ?? 0, frames.length - 1));
   const f = frames[i];
   return `<div class="stepper" data-key="${key}">
-    <div class="sp-view">${drawing(f.shapes, `Tekening bij stap ${i + 1}: ${f.title}`)}</div>
+    <div class="sp-view">${drawing(f.shapes, `Drawing for step ${i + 1}: ${f.title}`)}</div>
     <div class="sp-body">
-      <p class="eyebrow">Stap ${i + 1} van ${frames.length}</p>
+      <p class="eyebrow">Step ${i + 1} of ${frames.length}</p>
       <h3 class="h4">${esc(f.title)}</h3>
       <p>${esc(f.text)}</p>
       ${f.tip ? `<p class="tip"><strong>Tip:</strong> ${esc(f.tip)}</p>` : ''}
       <div class="row">
-        <button type="button" class="btn" data-sp="prev" ${i === 0 ? 'disabled' : ''}>← Vorige</button>
-        <button type="button" class="btn btn-primary" data-sp="next" ${i === frames.length - 1 ? 'disabled' : ''}>Volgende →</button>
+        <button type="button" class="btn" data-sp="prev" ${i === 0 ? 'disabled' : ''}>← Previous</button>
+        <button type="button" class="btn btn-primary" data-sp="next" ${i === frames.length - 1 ? 'disabled' : ''}>Next →</button>
       </div>
     </div>
-    <ol class="sp-thumbs" aria-label="Alle stappen">${frames.map((fr, j) =>
-      `<li><button type="button" class="thumb ${j === i ? 'on' : ''}" data-sp="go" data-i="${j}" ${j === i ? 'aria-current="step"' : ''} aria-label="Stap ${j + 1}: ${esc(fr.title)}">${drawing(fr.shapes, '')}<span>${j + 1}</span></button></li>`).join('')}</ol>
+    <ol class="sp-thumbs" aria-label="All steps">${frames.map((fr, j) =>
+      `<li><button type="button" class="thumb ${j === i ? 'on' : ''}" data-sp="go" data-i="${j}" ${j === i ? 'aria-current="step"' : ''} aria-label="Step ${j + 1}: ${esc(fr.title)}">${drawing(fr.shapes, '')}<span>${j + 1}</span></button></li>`).join('')}</ol>
   </div>`;
 }
 
@@ -264,29 +262,29 @@ function renderTechnique(id) {
   const g = GUIDES[id];
   const isSaved = state.saved.includes(id);
   main.innerHTML = `
-    <nav class="crumbs" aria-label="Kruimelpad"><a href="#/zoeken">Technieken</a> <span aria-hidden="true">/</span> ${esc(t.name)}</nav>
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="#/techniques">Techniques</a> <span aria-hidden="true">/</span> ${esc(t.name)}</nav>
     <article class="guide">
       <header>
         <p class="eyebrow">${esc(t.craft)} · ${esc(t.level)} · ${esc(t.material)}</p>
         <h1>${esc(t.name)}</h1>
         <p class="lede">${esc(g ? g.goal : t.description)}</p>
         <div class="row">
-          <button type="button" class="btn ${isSaved ? 'btn-on' : ''}" data-save="${t.id}" aria-pressed="${isSaved}">${isSaved ? '✓ Opgeslagen' : 'Opslaan'}</button>
-          <a class="btn btn-quiet" href="#/zoeken">← Alle technieken</a>
+          <button type="button" class="btn ${isSaved ? 'btn-on' : ''}" data-save="${t.id}" aria-pressed="${isSaved}">${isSaved ? '✓ Saved' : 'Save'}</button>
+          <a class="btn btn-quiet" href="#/techniques">← All techniques</a>
         </div>
       </header>
       ${g ? `
-      <section class="card" aria-labelledby="needs-t"><h2 id="needs-t" class="h3">Wat heb je nodig?</h2>
+      <section class="card" aria-labelledby="needs-t"><h2 id="needs-t" class="h3">What do you need?</h2>
         <ul>${g.needs.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>
-      <section aria-labelledby="plan-t"><h2 id="plan-t" class="h3">Stappenplan</h2>${stepperMarkup(id)}</section>
-      <section class="card" aria-labelledby="mist-t"><h2 id="mist-t" class="h3">Veelgemaakte fouten</h2>
+      <section aria-labelledby="plan-t"><h2 id="plan-t" class="h3">Step-by-step plan</h2>${stepperMarkup(id)}</section>
+      <section class="card" aria-labelledby="mist-t"><h2 id="mist-t" class="h3">Common mistakes</h2>
         <ul>${g.mistakes.map((n) => `<li>${esc(n)}</li>`).join('')}</ul></section>
-      <section class="card small" aria-labelledby="src-t"><h2 id="src-t" class="h4">Bronnen</h2>
-        <p class="muted">De tekeningen zijn zelf gemaakt voor deze interface, in de gangbare diagramstijl: streeplijn is dalvouw, streep-puntlijn is bergvouw, pijl is de beweging.</p>
+      <section class="card small" aria-labelledby="src-t"><h2 id="src-t" class="h4">Sources</h2>
+        <p class="muted">The drawings were made for this interface in the usual diagram style: a dashed line is a valley fold, a dash-dot line is a mountain fold, a dotted grey line is hidden paper behind, and an arrow is the movement.</p>
         ${g.sources.length
           ? `<ul>${g.sources.map((s) => `<li><a class="link" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.title)}</a></li>`).join('')}</ul>`
-          : '<p class="muted">Dit is een onderzoekstechniek van dit prototype; er is geen externe bron voor.</p>'}
-      </section>` : `<p class="notice">Voor deze techniek is nog geen stappenplan.</p>`}
+          : '<p class="muted">This is a research technique of this prototype; there is no external source for it.</p>'}
+      </section>` : `<p class="notice">There is no step-by-step plan for this technique yet.</p>`}
     </article>`;
 }
 
@@ -304,38 +302,36 @@ function moveStepper(btn) {
   target?.focus({ preventScroll: true });
 }
 
-/* ---------- 3-5. Tutorial, begeleider, reflectie ---------- */
+/* ---------- 3-5. Tutorial, coach, reflection ---------- */
 
 function demoMarkup(step) {
   if (ui.videoUrl) {
     const seg = segmentForStep(state, step.id);
     return `<section class="demo" aria-labelledby="demo-title">
-      <div class="video-wrap"><video id="vid" controls playsinline preload="metadata" src="${ui.videoUrl}">Je browser kan deze video niet afspelen.</video></div>
+      <div class="video-wrap"><video id="vid" controls playsinline preload="metadata" src="${ui.videoUrl}">Your browser cannot play this video.</video></div>
       <div class="demo-info">
         <h2 id="demo-title" class="h4">${esc(step.demoTitle)}</h2>
         ${seg
-          ? `<p><strong>Fragment uit de video:</strong> ${esc(seg.title)} (${fmt(seg.start)}–${fmt(seg.end)}) <span class="badge soft">${seg.source === 'reference' ? 'vaste indeling' : state.analysis?.source === 'ai' ? 'AI-analyse' : 'voorbeeld'}</span></p>
+          ? `<p><strong>Segment from the video:</strong> ${esc(seg.title)} (${fmt(seg.start)}–${fmt(seg.end)}) <span class="badge soft">${seg.source === 'reference' ? 'fixed layout' : state.analysis?.source === 'ai' ? 'AI analysis' : 'sample'}</span></p>
              ${seg.description ? `<p class="muted">${esc(seg.description)}</p>` : ''}`
-          : `<p class="muted">Deze stap is nog niet aan een fragment van je video gekoppeld. <a class="link" href="#/video">Naar video-analyse</a></p>`}
+          : `<p class="muted">This step is not linked to a segment of your video yet. <a class="link" href="#/video">Go to video analysis</a></p>`}
       </div>
       <div class="controls">
-        ${seg ? `<button type="button" class="btn btn-primary" data-segplay="${seg.start},${seg.end}">▶ Speel dit fragment</button>
-        <button type="button" class="btn" data-segplay="${seg.start},${seg.end}">↺ Herhaal fragment</button>` : ''}
+        ${seg ? `<button type="button" class="btn btn-primary" data-segplay="${seg.start},${seg.end}">▶ Play this segment</button>
+        <button type="button" class="btn" data-segplay="${seg.start},${seg.end}">↺ Repeat segment</button>` : ''}
       </div>
     </section>`;
   }
   return `<section class="card extra" aria-labelledby="demo-title">
-    <h2 id="demo-title" class="h4">Extra: je eigen video bij deze stap</h2>
-    <p class="muted">Het stappenplan hierboven werkt zonder video. Wil je toch een video erbij, upload die dan bij Video-analyse: de AI stelt een fragment voor deze stap voor.</p>
-    <a class="btn" href="#/video">Naar video-analyse</a>
+    <h2 id="demo-title" class="h4">Extra: your own video for this step</h2>
+    <p class="muted">The step-by-step plan above works without a video. If you do want a video alongside, upload it under Video analysis: the video then jumps to the right part for this step.</p>
+    <a class="btn" href="#/video">Go to video analysis</a>
   </section>`;
 }
 
 function renderTutorial(step) {
   const st = stepStatus(state, step.id);
   const isDone = st === 'done';
-  ui.pos = 0;
-  ui.playing = false;
   ui.phase = 'learn';
   ui.choice = '';
   ui.note = '';
@@ -346,25 +342,25 @@ function renderTutorial(step) {
   const next = STEPS.find((s) => s.id === step.id + 1);
 
   main.innerHTML = `
-    <nav class="crumbs" aria-label="Kruimelpad"><a href="#/project">${esc(PROJECT.title)}</a> <span aria-hidden="true">/</span> Stap ${step.id} van ${STEPS.length}</nav>
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="#/project">${esc(PROJECT.title)}</a> <span aria-hidden="true">/</span> Step ${step.id} of ${STEPS.length}</nav>
     <div class="tutorial">
       <div class="tut-main">
         <header>
-          <p class="eyebrow">Stap ${step.id} · ± ${step.minutes} min ${isDone ? '· <span class="badge">Afgerond</span>' : st === 'upcoming' ? '· <span class="badge soft">Nog niet aan de beurt</span>' : ''}</p>
+          <p class="eyebrow">Step ${step.id} ${isDone ? '· <span class="badge">Completed</span>' : st === 'upcoming' ? '· <span class="badge soft">Not your turn yet</span>' : ''}</p>
           <h1>${esc(step.title)}</h1>
         </header>
 
         <section aria-labelledby="plan-title" class="plan">
-          <h2 id="plan-title" class="h3">Stappenplan met tekeningen</h2>
+          <h2 id="plan-title" class="h3">Step-by-step plan with drawings</h2>
           ${stepperMarkup('s' + step.id)}
         </section>
 
         <section aria-labelledby="inst-title" class="card">
-          <h2 id="inst-title" class="h3">Zo ga je te werk</h2>
+          <h2 id="inst-title" class="h3">How to proceed</h2>
           <ol class="instr" id="instr">
             ${step.instructions.map((t, i) => `<li data-i="${i}">${esc(t)}</li>`).join('')}
           </ol>
-          <p class="tip"><strong>Let op:</strong> ${esc(step.tip)}</p>
+          <p class="tip"><strong>Note:</strong> ${esc(step.tip)}</p>
         </section>
 
         ${demoMarkup(step)}
@@ -372,28 +368,28 @@ function renderTutorial(step) {
         <section id="finish" aria-labelledby="fin-title" class="card"></section>
 
         <div class="step-nav">
-          ${prev ? `<a class="btn btn-quiet" href="#/stap/${prev.id}">← Vorige stap</a>` : '<span></span>'}
-          <a class="btn btn-quiet" href="#/project">Terug naar project</a>
-          ${next ? `<a class="btn btn-quiet" href="#/stap/${next.id}">Volgende stap →</a>` : '<span></span>'}
+          ${prev ? `<a class="btn btn-quiet" href="#/step/${prev.id}">← Previous step</a>` : '<span></span>'}
+          <a class="btn btn-quiet" href="#/project">Back to project</a>
+          ${next ? `<a class="btn btn-quiet" href="#/step/${next.id}">Next step →</a>` : '<span></span>'}
         </div>
       </div>
 
       <aside class="coach-panel" aria-labelledby="coach-title">
         <div class="coach-head">
-          <h2 id="coach-title" class="h3">Begeleider</h2>
+          <h2 id="coach-title" class="h3">Coach</h2>
           <span class="chip" id="coach-chip">Prototype</span>
         </div>
-        <p class="muted small" id="coach-note">Even kijken of de AI verbonden is…</p>
-        <div id="coach-log" class="log" role="log" aria-live="polite" aria-label="Gesprek met de begeleider"></div>
+        <p class="muted small" id="coach-note">Checking whether the AI is connected…</p>
+        <div id="coach-log" class="log" role="log" aria-live="polite" aria-label="Conversation with the coach"></div>
         <div class="quick">
-          <button type="button" class="btn" data-coach="explain">Leg anders uit</button>
-          <button type="button" class="btn" data-coach="hint">Geef een hint</button>
+          <button type="button" class="btn" data-coach="explain">Explain differently</button>
+          <button type="button" class="btn" data-coach="hint">Give me a hint</button>
         </div>
         <form id="ask" class="ask">
-          <label for="q">Vraag de begeleider</label>
+          <label for="q">Ask the coach</label>
           <div class="ask-row">
-            <input id="q" name="q" type="text" autocomplete="off" placeholder="Bijvoorbeeld: mijn vouw wordt scheef" maxlength="300">
-            <button class="btn btn-primary" type="submit">Verstuur</button>
+            <input id="q" name="q" type="text" autocomplete="off" placeholder="For example: my fold is coming out crooked" maxlength="300">
+            <button class="btn btn-primary" type="submit">Send</button>
           </div>
         </form>
       </aside>
@@ -411,17 +407,17 @@ function updateCoachInfo(status) {
   const note = $('#coach-note');
   if (!chip || !note) return;
   if (status.connected) {
-    chip.textContent = 'Claude verbonden';
+    chip.textContent = 'Claude connected';
     chip.classList.add('on');
-    note.textContent = 'Antwoorden komen van Claude via de server. De begeleider ziet je papier niet en doet niets in je project; jij beslist.';
+    note.textContent = 'Answers come from Claude via the server. The coach cannot see your paper and does nothing in your project; you decide.';
   } else {
     chip.textContent = 'Prototype';
     chip.classList.remove('on');
-    note.textContent = 'AI niet verbonden: antwoorden komen uit lokale voorbeeldregels. De begeleider doet niets in je project; jij beslist.';
+    note.textContent = 'AI not connected: answers come from local sample rules. The coach does nothing in your project; you decide.';
   }
 }
 
-/* Video-element: speel een fragment en stop aan het einde */
+/* Video element: play a segment and stop at the end */
 
 function bindVideo(vid, seg = null) {
   if (!vid) return;
@@ -434,7 +430,6 @@ function bindVideo(vid, seg = null) {
     }
   };
   if (vid.readyState >= 1) start(); else vid.addEventListener('loadedmetadata', start, { once: true });
-  vid.addEventListener('ratechange', () => { /* gebruiker mag de snelheid zelf aanpassen */ });
   vid.addEventListener('timeupdate', () => {
     const end = Number(vid.dataset.end);
     if (end && vid.currentTime >= end) { vid.pause(); vid.dataset.end = ''; }
@@ -455,46 +450,7 @@ function playSegment(start, end) {
   vid.play().catch(() => {});
 }
 
-/* Demonstratie-placeholder met lokale afspeel/pauze-simulatie (alleen zonder geüploade video) */
-
-function drawDemo(step) {
-  const stage = $('#demo-stage');
-  if (!stage) return;
-  const frac = ui.pos / step.demoSeconds;
-  const idx = Math.min(step.instructions.length - 1, Math.floor(frac * step.instructions.length));
-  stage.innerHTML = `${paperArt(step.id)}
-    <div class="demo-caption"><span class="demo-badge">${ui.playing ? 'Speelt (simulatie)' : ui.pos >= step.demoSeconds ? 'Afgelopen' : ui.pos > 0 ? 'Gepauzeerd' : 'Klaar om te starten'}</span>
-    <p>${esc(step.demoCaption)}</p></div>`;
-  $('#time').textContent = `${fmt(ui.pos)} / ${fmt(step.demoSeconds)}`;
-  const scrub = $('#scrub');
-  scrub.value = ui.pos;
-  scrub.setAttribute('aria-valuetext', `${fmt(ui.pos)} van ${fmt(step.demoSeconds)}`);
-  const play = $('#play');
-  play.textContent = ui.playing ? '❚❚ Pauzeren' : ui.pos >= step.demoSeconds ? '▶ Opnieuw afspelen' : ui.pos > 0 ? '▶ Hervatten' : '▶ Afspelen';
-  play.setAttribute('aria-pressed', String(ui.playing));
-  document.querySelectorAll('#instr li').forEach((li, i) => li.classList.toggle('active', (ui.playing || ui.pos > 0) && i === idx));
-}
-
-function stopDemo() {
-  clearInterval(ui.timer);
-  ui.timer = null;
-  ui.playing = false;
-}
-
-function startDemo(step) {
-  if (ui.pos >= step.demoSeconds) ui.pos = 0;
-  ui.playing = true;
-  clearInterval(ui.timer);
-  // 1 simulatieseconde per 150 ms: snel doorlopen, maar zichtbaar.
-  ui.timer = setInterval(() => {
-    ui.pos = Math.min(step.demoSeconds, ui.pos + 1);
-    if (ui.pos >= step.demoSeconds) stopDemo();
-    drawDemo(step);
-  }, 150);
-  drawDemo(step);
-}
-
-/* Afronden + reflectie: voortgang verandert alleen na expliciete bevestiging */
+/* Finish + reflection: progress only changes after explicit confirmation */
 
 function renderFinish(step) {
   const box = $('#finish');
@@ -504,34 +460,34 @@ function renderFinish(step) {
   if (ui.phase === 'done') {
     const next = STEPS.find((s) => !state.completed.includes(s.id));
     box.innerHTML = `
-      <h2 id="fin-title" class="h3">Stap afgerond</h2>
-      <p class="notice ok" role="status">Mooi, “${esc(step.title)}” staat nu als afgerond. Je voortgang is bijgewerkt: ${state.completed.length} van ${STEPS.length} stappen.</p>
-      ${next ? `<div class="prep"><p class="eyebrow">Voorbereiding op de volgende stap</p>
-        <p><strong>Stap ${next.id}: ${esc(next.title)}</strong> (± ${next.minutes} min)</p>
+      <h2 id="fin-title" class="h3">Step completed</h2>
+      <p class="notice ok" role="status">Nice, “${esc(step.title)}” is now marked as completed. Your progress has been updated: ${state.completed.length} of ${STEPS.length} steps.</p>
+      ${next ? `<div class="prep"><p class="eyebrow">Preparing for the next step</p>
+        <p><strong>Step ${next.id}: ${esc(next.title)}</strong></p>
         <p class="muted">${esc(next.tip)}</p></div>
         <div class="row">
-          <a class="btn btn-primary" href="#/stap/${next.id}">Door met stap ${next.id}</a>
-          <a class="btn" href="#/project">Terug naar project</a>
+          <a class="btn btn-primary" href="#/step/${next.id}">Continue with step ${next.id}</a>
+          <a class="btn" href="#/project">Back to project</a>
         </div>`
-        : `<p>Dit was de laatste stap. Je project is klaar.</p><div class="row"><a class="btn btn-primary" href="#/project">Terug naar project</a></div>`}`;
+        : `<p>That was the last step. Your project is done.</p><div class="row"><a class="btn btn-primary" href="#/project">Back to project</a></div>`}`;
     return;
   }
 
   if (ui.phase === 'reflect') {
     const r = step.reflection;
     box.innerHTML = `
-      <h2 id="fin-title" class="h3">Even terugkijken</h2>
+      <h2 id="fin-title" class="h3">A quick look back</h2>
       <form id="reflect" novalidate>
         <fieldset>
           <legend>${esc(r.question)}</legend>
           ${r.options.map((o) => `<label class="opt"><input type="radio" name="choice" value="${esc(o)}" ${ui.choice === o ? 'checked' : ''}> <span>${esc(o)}</span></label>`).join('')}
         </fieldset>
-        <label for="note" class="field-label">Wil je er iets bij schrijven? (optioneel)</label>
+        <label for="note" class="field-label">Would you like to add a note? (optional)</label>
         <textarea id="note" rows="3" maxlength="500">${esc(ui.note)}</textarea>
         <div class="row">
-          <button type="submit" class="btn btn-primary">Bevestig en rond stap af</button>
-          <button type="button" class="btn" id="skip-reflect">Reflectie overslaan en afronden</button>
-          <button type="button" class="btn btn-quiet" id="back-practice">Nog niet, terug naar oefenen</button>
+          <button type="submit" class="btn btn-primary">Confirm and complete step</button>
+          <button type="button" class="btn" id="skip-reflect">Skip reflection and complete</button>
+          <button type="button" class="btn btn-quiet" id="back-practice">Not yet, back to practising</button>
         </div>
       </form>`;
     return;
@@ -539,18 +495,18 @@ function renderFinish(step) {
 
   if (done) {
     box.innerHTML = `
-      <h2 id="fin-title" class="h3">Deze stap is afgerond</h2>
+      <h2 id="fin-title" class="h3">This step is completed</h2>
       ${saved && !saved.skipped
-        ? `<p><strong>Jouw reflectie:</strong> ${esc(saved.choice || 'geen keuze')}${saved.note ? ` · “${esc(saved.note)}”` : ''}</p>`
-        : '<p class="muted">Je hebt de reflectie overgeslagen.</p>'}
-      <p class="muted">Je kunt de uitleg altijd opnieuw bekijken.</p>`;
+        ? `<p><strong>Your reflection:</strong> ${esc(saved.choice || 'no choice')}${saved.note ? ` · “${esc(saved.note)}”` : ''}</p>`
+        : '<p class="muted">You skipped the reflection.</p>'}
+      <p class="muted">You can always look at the explanation again.</p>`;
   } else {
     box.innerHTML = `
-      <h2 id="fin-title" class="h3">Zelf proberen</h2>
-      <p>Neem de tijd om het zelf uit te proberen. Pas als jij dat aangeeft, tel ik de stap mee in je voortgang.</p>
+      <h2 id="fin-title" class="h3">Try it yourself</h2>
+      <p>Take your time to try it yourself. Only when you say so does the step count towards your progress.</p>
       <div class="row">
-        <button type="button" class="btn btn-primary" id="tried">Ik heb dit geprobeerd</button>
-        <button type="button" class="btn" id="mark-done">Markeer als afgerond</button>
+        <button type="button" class="btn btn-primary" id="tried">I have tried this</button>
+        <button type="button" class="btn" id="mark-done">Mark as completed</button>
       </div>`;
   }
 }
@@ -561,23 +517,23 @@ function finishStep(step, reflection) {
   ui.phase = 'done';
   renderFinish(step);
   renderNav(route());
-  toast('Stap afgerond en opgeslagen');
+  toast('Step completed and saved');
   $('#fin-title')?.setAttribute('tabindex', '-1');
   $('#fin-title')?.focus();
 }
 
-/* Coachgesprek */
+/* Coach conversation */
 
 function renderCoachLog(step) {
   const log = $('#coach-log');
   if (!log) return;
   const msgs = state.chats[step.id] || [];
   log.innerHTML = msgs.map((m) => `<div class="msg ${m.from}">
-    <span class="who">${m.from === 'you' ? 'Jij' : `Begeleider · ${m.simulated === false ? 'Claude' : 'voorbeeld'}`}</span>
+    <span class="who">${m.from === 'you' ? 'You' : `Coach · ${m.simulated === false ? 'Claude' : 'sample'}`}</span>
     <p>${esc(m.text)}</p>
     ${m.followUp ? `<p class="follow">${esc(m.followUp)}</p>` : ''}
     ${m.notice ? `<p class="small muted">${esc(m.notice)}</p>` : ''}
-  </div>`).join('') + (pending > 0 ? '<div class="msg coach"><span class="who">Begeleider</span><p class="muted">Denkt na…</p></div>' : '');
+  </div>`).join('') + (pending > 0 ? '<div class="msg coach"><span class="who">Coach</span><p class="muted">Thinking…</p></div>' : '');
   log.scrollTop = log.scrollHeight;
 }
 
@@ -593,14 +549,14 @@ function talk(step, kind, question = '') {
 async function talkNow(step, kind, question = '') {
   const history = state.chats[step.id] || [];
   if (kind === 'question') state = appendChat(state, step.id, [{ from: 'you', text: question }]);
-  if (kind === 'explain') state = appendChat(state, step.id, [{ from: 'you', text: 'Leg anders uit.' }]);
-  if (kind === 'hint') state = appendChat(state, step.id, [{ from: 'you', text: 'Geef een hint.' }]);
+  if (kind === 'explain') state = appendChat(state, step.id, [{ from: 'you', text: 'Explain differently.' }]);
+  if (kind === 'hint') state = appendChat(state, step.id, [{ from: 'you', text: 'Give me a hint.' }]);
   if (route().id === step.id) renderCoachLog(step);
   try {
     const reply = await askCoach({ kind, step, question, history, segment: segmentForStep(state, step.id) });
     state = appendChat(state, step.id, [{ from: 'coach', kind, text: reply.text, followUp: reply.followUp, simulated: reply.simulated, notice: reply.notice }]);
   } catch {
-    state = appendChat(state, step.id, [{ from: 'coach', simulated: true, text: 'Er ging iets mis bij de begeleider. Probeer het nog eens.' }]);
+    state = appendChat(state, step.id, [{ from: 'coach', simulated: true, text: 'Something went wrong with the coach. Please try again.' }]);
   } finally {
     pending = Math.max(0, pending - 1); // eerst bijwerken, dan pas tekenen
   }
@@ -615,15 +571,15 @@ async function welcome(step) {
   if (route().id === step.id) renderCoachLog(step);
 }
 
-/* ---------- Video-analyse ---------- */
+/* ---------- Video analysis ---------- */
 
 function renderVideoPage() {
   main.innerHTML = `
     <section>
-      <p class="eyebrow">Video-analyse</p>
-      <h1>Analyseer een bestaande video</h1>
-      <p class="lede">Upload een instructievideo van de papieren kraanvogel. De interface haalt er beelden uit en laat een AI voorstellen welke fragmenten bij welke stap horen. Jij beslist wat je overneemt.</p>
-      <div id="ai-banner" class="notice" role="status">Even kijken of de AI verbonden is…</div>
+      <p class="eyebrow">Video analysis</p>
+      <h1>Analyse an existing video</h1>
+      <p class="lede">Upload an instruction video of the paper crane. The video jumps to the right part for every step. Optionally, the interface takes frames from it and lets an AI suggest which segments belong to which step. You decide what to adopt.</p>
+      <div id="ai-banner" class="notice" role="status">Checking whether the AI is connected…</div>
       <div id="vid-card" class="card"></div>
       <p id="an-status" class="notice" role="status" aria-live="polite" hidden></p>
       <div id="an-panel"></div>
@@ -636,8 +592,8 @@ function renderVideoPage() {
     if (!b) return;
     b.className = `notice ${s.connected ? 'ok' : ''}`;
     b.innerHTML = s.connected
-      ? `AI verbonden (${esc(s.model || 'Claude')}). Bij analyseren worden ${ANALYSE_FRAMES} losse beelden uit je video via je server naar de Claude API gestuurd. De video zelf blijft in je browser.`
-      : `AI niet verbonden. Je kunt de video wel uploaden en afspelen, maar een echte analyse vraagt een draaiende server met <code>ANTHROPIC_API_KEY</code> (zie README). Zonder AI kun je een duidelijk gemarkeerde voorbeeldanalyse bekijken.`;
+      ? `AI connected (${esc(s.model || 'Claude')}). When you analyse, ${ANALYSE_FRAMES} single frames from your video are sent via your server to the Claude API. The video itself stays in your browser.`
+      : `AI not connected. You can still upload and play the video, but a real analysis needs a running server with <code>ANTHROPIC_API_KEY</code> (see README). Without AI you can view a clearly marked sample analysis.`;
     drawVideoCard(s);
   });
 }
@@ -663,24 +619,24 @@ function drawVideoCard(ai) {
   const v = state.video;
   if (!v || !ui.videoUrl) {
     card.innerHTML = `
-      <h2 class="h3">1. Kies je video</h2>
-      <p class="muted">Bijvoorbeeld een bestaande tutorial van een origami-kraanvogel (MP4 of WebM). De video wordt in je browser bewaard en niet geüpload.</p>
-      <label class="file-pick btn btn-primary" for="vfile">Video kiezen</label>
+      <h2 class="h3">1. Choose your video</h2>
+      <p class="muted">For example an existing origami crane tutorial (MP4 or WebM). The video is kept in your browser and is not uploaded.</p>
+      <label class="file-pick btn btn-primary" for="vfile">Choose video</label>
       <input id="vfile" class="sr-file" type="file" accept="video/*">`;
     return;
   }
   card.innerHTML = `
     <h2 class="h3">1. Jouw video</h2>
-    <div class="video-wrap"><video id="vid" controls playsinline preload="metadata" src="${ui.videoUrl}">Je browser kan deze video niet afspelen.</video></div>
+    <div class="video-wrap"><video id="vid" controls playsinline preload="metadata" src="${ui.videoUrl}">Your browser cannot play this video.</video></div>
     <p class="muted small">${esc(v.name)} · ${fmt(v.duration)} · ${mb(v.size)}</p>
     <div class="row">
-      <button type="button" class="btn btn-primary" id="analyze" ${ui.analyzing || !lastAi.connected ? 'disabled' : ''}>Analyseer video met AI</button>
-      ${lastAi.connected ? '' : '<button type="button" class="btn" id="sample" ' + (ui.analyzing ? 'disabled' : '') + '>Voorbeeldanalyse tonen (gesimuleerd)</button>'}
-      <label class="file-pick btn" for="vfile">Andere video kiezen</label>
+      <button type="button" class="btn btn-primary" id="analyze" ${ui.analyzing || !lastAi.connected ? 'disabled' : ''}>Analyse video with AI</button>
+      ${lastAi.connected ? '' : '<button type="button" class="btn" id="sample" ' + (ui.analyzing ? 'disabled' : '') + '>Show sample analysis (simulated)</button>'}
+      <label class="file-pick btn" for="vfile">Choose another video</label>
       <input id="vfile" class="sr-file" type="file" accept="video/*">
-      <button type="button" class="btn btn-danger" id="remove-video">Video verwijderen</button>
+      <button type="button" class="btn btn-danger" id="remove-video">Remove video</button>
     </div>
-    ${lastAi.connected ? '' : '<p class="muted small">De knop “Analyseer video met AI” wordt actief zodra de AI is verbonden.</p>'}`;
+    ${lastAi.connected ? '' : '<p class="muted small">The “Analyse video with AI” button becomes active as soon as the AI is connected.</p>'}`;
   bindVideo($('#vid'));
 }
 
@@ -690,50 +646,50 @@ function drawAnalysis() {
   const a = state.analysis;
   if (!a) {
     panel.innerHTML = state.video
-      ? '<div class="card"><h2 class="h3">2. Analyse</h2><p class="muted">Nog geen analyse. Start de analyse hierboven.</p></div>'
+      ? '<div class="card"><h2 class="h3">2. Analysis</h2><p class="muted">No analysis yet. Start the analysis above.</p></div>'
       : '';
     return;
   }
   const dur = state.video?.duration || a.segments.at(-1)?.end || 1;
   panel.innerHTML = `
     <div class="card">
-      <h2 class="h3">2. Voorgestelde fragmenten ${a.source === 'ai' ? '<span class="badge">AI-analyse</span>' : '<span class="badge soft">gesimuleerd voorbeeld</span>'}</h2>
+      <h2 class="h3">2. Suggested segments ${a.source === 'ai' ? '<span class="badge">AI analysis</span>' : '<span class="badge soft">simulated sample</span>'}</h2>
       <p>${esc(a.summary)}</p>
       ${(a.warnings || []).map((w) => `<p class="notice small">${esc(w)}</p>`).join('')}
-      <div class="timeline" aria-label="Tijdlijn van de fragmenten">
-        ${a.segments.map((s) => `<button type="button" class="seg-mark ${s.stepId ? '' : 'none'}" style="left:${(s.start / dur) * 100}%;width:${Math.max(1.5, ((s.end - s.start) / dur) * 100)}%" data-seek="${s.start},${s.end}" title="${esc(s.title)} (${fmt(s.start)}–${fmt(s.end)})" aria-label="Speel ${esc(s.title)}, ${fmt(s.start)} tot ${fmt(s.end)}"></button>`).join('')}
+      <div class="timeline" aria-label="Timeline of the segments">
+        ${a.segments.map((s) => `<button type="button" class="seg-mark ${s.stepId ? '' : 'none'}" style="left:${(s.start / dur) * 100}%;width:${Math.max(1.5, ((s.end - s.start) / dur) * 100)}%" data-seek="${s.start},${s.end}" title="${esc(s.title)} (${fmt(s.start)}–${fmt(s.end)})" aria-label="Play ${esc(s.title)}, ${fmt(s.start)} to ${fmt(s.end)}"></button>`).join('')}
       </div>
       <ul class="segs">
         ${a.segments.map((s) => `<li class="seg">
           <div class="seg-top">
             <button type="button" class="btn" data-seek="${s.start},${s.end}">▶ ${fmt(s.start)}–${fmt(s.end)}</button>
             <strong>${esc(s.title)}</strong>
-            ${s.uncertain ? '<span class="badge soft">onzeker</span>' : ''}
+            ${s.uncertain ? '<span class="badge soft">uncertain</span>' : ''}
           </div>
           ${s.description ? `<p>${esc(s.description)}</p>` : ''}
-          ${s.tip ? `<p class="muted small">Aandachtspunt: ${esc(s.tip)}</p>` : ''}
-          <label for="seg-${s.id}" class="field-label">Hoort bij stap</label>
+          ${s.tip ? `<p class="muted small">Point of attention: ${esc(s.tip)}</p>` : ''}
+          <label for="seg-${s.id}" class="field-label">Belongs to step</label>
           <select id="seg-${s.id}" data-seg-step="${s.id}">
-            <option value="">Geen stap</option>
-            ${STEPS.map((st) => `<option value="${st.id}" ${s.stepId === st.id ? 'selected' : ''}>Stap ${st.id}: ${esc(st.title)}</option>`).join('')}
+            <option value="">No step</option>
+            ${STEPS.map((st) => `<option value="${st.id}" ${s.stepId === st.id ? 'selected' : ''}>Step ${st.id}: ${esc(st.title)}</option>`).join('')}
           </select>
         </li>`).join('')}
       </ul>
       <div class="row">
         ${a.adopted
-          ? '<p class="notice ok" role="status">Deze fragmenten staan nu in je leerpad. Open een stap om het fragment af te spelen.</p>'
-          : '<button type="button" class="btn btn-primary" id="adopt">Gebruik deze fragmenten in mijn leerpad</button>'}
-        <button type="button" class="btn" id="discard">Analyse verwijderen</button>
+          ? '<p class="notice ok" role="status">These segments are now in your learning path. Open a step to play the segment.</p>'
+          : '<button type="button" class="btn btn-primary" id="adopt">Use these segments in my learning path</button>'}
+        <button type="button" class="btn" id="discard">Remove analysis</button>
       </div>
-      <p class="muted small">Je beslist wat je overneemt. De AI wijzigt niets aan je voortgang.</p>
+      <p class="muted small">You decide what to adopt. The AI changes nothing about your progress.</p>
     </div>`;
 }
 
 async function onVideoChosen(file) {
   if (!file) return;
-  if (!file.type.startsWith('video/')) { setStatus('Dit is geen videobestand.', true); return; }
-  if (file.size > 800 * 1048576) { setStatus('Deze video is te groot (maximaal 800 MB).', true); return; }
-  setStatus('Video wordt gelezen…');
+  if (!file.type.startsWith('video/')) { setStatus('This is not a video file.', true); return; }
+  if (file.size > 800 * 1048576) { setStatus('This video is too large (maximum 800 MB).', true); return; }
+  setStatus('Reading video…');
   try {
     const info = await readVideoInfo(file);
     const stored = await saveVideo(file);
@@ -741,28 +697,28 @@ async function onVideoChosen(file) {
     ui.videoUrl = URL.createObjectURL(file);
     state = setVideoMeta(state, { name: file.name, size: file.size, type: file.type, duration: info.duration });
     persist();
-    setStatus(stored ? '' : 'De video werkt nu, maar kon niet worden bewaard voor na het herladen.', !stored);
+    setStatus(stored ? '' : 'The video works now, but could not be saved for after a reload.', !stored);
     drawVideoCard();
     drawAnalysis();
     renderNav(route());
   } catch (e) {
-    setStatus(e.message || 'De video kon niet worden gelezen.', true);
+    setStatus(e.message || 'The video could not be read.', true);
   }
 }
 
 async function runAnalysis() {
   if (ui.analyzing) return;
   const blob = await loadVideo();
-  if (!blob) { setStatus('De video is niet meer beschikbaar. Kies hem opnieuw.', true); return; }
+  if (!blob) { setStatus('The video is no longer available. Please choose it again.', true); return; }
   ui.analyzing = true;
   drawVideoCard();
   try {
-    setStatus(`Beelden uit de video halen (0/${ANALYSE_FRAMES})…`);
+    setStatus(`Taking frames from the video (0/${ANALYSE_FRAMES})…`);
     const { duration, frames } = await extractFrames(blob, {
       count: ANALYSE_FRAMES,
-      onProgress: (i, n) => setStatus(`Beelden uit de video halen (${i}/${n})…`),
+      onProgress: (i, n) => setStatus(`Taking frames from the video (${i}/${n})…`),
     });
-    setStatus('De AI bekijkt de beelden. Dit duurt meestal even…');
+    setStatus('The AI is looking at the frames. This usually takes a moment…');
     const res = await postJson('/api/analyze-video', {
       duration,
       frames,
@@ -771,9 +727,9 @@ async function runAnalysis() {
     state = setAnalysis(state, { source: 'ai', model: res.model, createdAt: Date.now(), summary: res.summary, warnings: res.warnings, framesUsed: res.framesUsed, segments: res.segments });
     persist();
     setStatus('');
-    toast('Analyse klaar. Controleer de fragmenten voor je ze overneemt.');
+    toast('Analysis ready. Check the segments before you adopt them.');
   } catch (e) {
-    setStatus(`Analyse mislukt: ${e.message}`, true);
+    setStatus(`Analysis failed: ${e.message}`, true);
   } finally {
     ui.analyzing = false;
     drawVideoCard();
@@ -781,7 +737,7 @@ async function runAnalysis() {
   }
 }
 
-/* ---------- 6. Zoeken en opgeslagen ---------- */
+/* ---------- 6. Search and saved ---------- */
 
 function techCard(t, { inSaved = false } = {}) {
   const isSaved = state.saved.includes(t.id);
@@ -792,10 +748,10 @@ function techCard(t, { inSaved = false } = {}) {
       <p>${esc(t.description)}</p>
     </div>
     <div class="row">
-      <a class="btn btn-primary" href="#/techniek/${t.id}">Stappenplan</a>
+      <a class="btn btn-primary" href="#/technique/${t.id}">Step-by-step plan</a>
       ${inSaved
-        ? `<button type="button" class="btn btn-danger" data-save="${t.id}" aria-label="Verwijder ${esc(t.name)} uit opgeslagen">Verwijderen</button>`
-        : `<button type="button" class="btn ${isSaved ? 'btn-on' : ''}" data-save="${t.id}" aria-pressed="${isSaved}">${isSaved ? '✓ Opgeslagen' : 'Opslaan'}</button>`}
+        ? `<button type="button" class="btn btn-danger" data-save="${t.id}" aria-label="Remove ${esc(t.name)} from saved">Remove</button>`
+        : `<button type="button" class="btn ${isSaved ? 'btn-on' : ''}" data-save="${t.id}" aria-pressed="${isSaved}">${isSaved ? '✓ Saved' : 'Save'}</button>`}
     </div>
   </li>`;
 }
@@ -804,13 +760,13 @@ function renderSearch() {
   const s = ui.search;
   main.innerHTML = `
     <section>
-      <p class="eyebrow">Technieken</p>
-      <h1>Zoek een techniek</h1>
-      <p class="lede">Klik op een techniek voor een stappenplan met tekeningen: wat je nodig hebt, hoe je het vouwt en welke fouten vaak voorkomen.</p>
-      <form id="filters" class="filters" role="search" aria-label="Technieken filteren">
-        <div><label for="f-q">Zoeken</label><input id="f-q" type="search" value="${esc(s.query)}" placeholder="Naam, materiaal of omschrijving"></div>
-        <div><label for="f-c">Soort</label><select id="f-c">${FILTERS.crafts.map((c) => `<option ${c === s.craft ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
-        <div><label for="f-l">Niveau</label><select id="f-l">${FILTERS.levels.map((c) => `<option ${c === s.level ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+      <p class="eyebrow">Techniques</p>
+      <h1>Find a technique</h1>
+      <p class="lede">Click a technique for a step-by-step plan with drawings: what you need, how to fold it and which mistakes are common.</p>
+      <form id="filters" class="filters" role="search" aria-label="Filter techniques">
+        <div><label for="f-q">Search</label><input id="f-q" type="search" value="${esc(s.query)}" placeholder="Name, material or description"></div>
+        <div><label for="f-c">Type</label><select id="f-c">${FILTERS.crafts.map((c) => `<option ${c === s.craft ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+        <div><label for="f-l">Level</label><select id="f-l">${FILTERS.levels.map((c) => `<option ${c === s.level ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
       </form>
       <p id="count" class="muted" role="status"></p>
       <ul id="results" class="grid"></ul>
@@ -820,26 +776,26 @@ function renderSearch() {
 
 function drawResults() {
   const list = filterTechniques(TECHNIQUES, ui.search);
-  $('#count').textContent = `${list.length} ${list.length === 1 ? 'resultaat' : 'resultaten'}`;
+  $('#count').textContent = `${list.length} ${list.length === 1 ? 'result' : 'results'}`;
   $('#results').innerHTML = list.length
     ? list.map((t) => techCard(t)).join('')
-    : '<li class="muted">Niets gevonden. Pas je zoekopdracht of filter aan.</li>';
+    : '<li class="muted">Nothing found. Change your search or filter.</li>';
 }
 
 function renderSaved() {
   const list = TECHNIQUES.filter((t) => state.saved.includes(t.id));
   main.innerHTML = `
     <section>
-      <p class="eyebrow">Opgeslagen</p>
-      <h1>Jouw technieken</h1>
-      <p class="lede">Technieken die je hebt bewaard. Je kunt ze hier openen of weer verwijderen.</p>
+      <p class="eyebrow">Saved</p>
+      <h1>Your techniques</h1>
+      <p class="lede">Techniques you have saved. You can open or remove them here.</p>
       ${list.length
         ? `<ul id="saved-list" class="grid">${list.map((t) => techCard(t, { inSaved: true })).join('')}</ul>`
-        : `<div class="card empty"><p>Je hebt nog niets opgeslagen.</p><a class="btn btn-primary" href="#/zoeken">Technieken zoeken</a></div>`}
+        : `<div class="card empty"><p>You have not saved anything yet.</p><a class="btn btn-primary" href="#/techniques">Find techniques</a></div>`}
     </section>`;
 }
 
-/* ---------- Dialoog ---------- */
+/* ---------- Dialog ---------- */
 
 function openTechnique(id) {
   const t = TECHNIQUES.find((x) => x.id === id);
@@ -850,10 +806,10 @@ function openTechnique(id) {
     <h2 id="dialog-title" class="h3">${esc(t.name)}</h2>
     <p class="muted small">${esc(t.craft)} · ${esc(t.level)} · ${esc(t.material)}</p>
     <p>${esc(t.description)}</p>
-    <p class="notice">Dit is voorbeeldinhoud in het prototype. Een uitgebreide uitleg of demonstratie komt later.</p>
+    <p class="notice">This is sample content in the prototype. A fuller explanation or demonstration will follow.</p>
     <div class="row">
-      <button class="btn ${isSaved ? 'btn-on' : 'btn-primary'}" data-save="${t.id}" data-close="1">${isSaved ? 'Verwijder uit opgeslagen' : 'Opslaan'}</button>
-      <button class="btn" data-close="1">Sluiten</button>
+      <button class="btn ${isSaved ? 'btn-on' : 'btn-primary'}" data-save="${t.id}" data-close="1">${isSaved ? 'Remove from saved' : 'Save'}</button>
+      <button class="btn" data-close="1">Close</button>
     </div>`;
   dlg.showModal();
 }
@@ -861,30 +817,30 @@ function openTechnique(id) {
 function confirmReset() {
   const dlg = $('#dialog');
   dlg.innerHTML = `
-    <h2 id="dialog-title" class="h3">Demo resetten?</h2>
-    <p>Je voortgang, reflecties, gesprekken, opgeslagen technieken en de geüploade video met analyse worden gewist en de demo begint opnieuw.</p>
+    <h2 id="dialog-title" class="h3">Reset the demo?</h2>
+    <p>Your progress, reflections, conversations, saved techniques and the uploaded video with its analysis will be erased and the demo starts over.</p>
     <div class="row">
-      <button class="btn btn-danger" id="do-reset">Ja, reset de demo</button>
-      <button class="btn" data-close="1">Annuleren</button>
+      <button class="btn btn-danger" id="do-reset">Yes, reset the demo</button>
+      <button class="btn" data-close="1">Cancel</button>
     </div>`;
   dlg.showModal();
 }
 
-/* ---------- Gebeurtenissen (delegatie) ---------- */
+/* ---------- Events (delegation) ---------- */
 
 function refreshLists() {
   const r = route();
-  if (r.name === 'zoeken') drawResults();
-  else if (r.name === 'opgeslagen') renderSaved();
+  if (r.name === 'techniques') drawResults();
+  else if (r.name === 'saved') renderSaved();
   else if (r.name === 'dashboard') renderDashboard();
-  else if (r.name === 'techniek') renderTechnique(r.id);
+  else if (r.name === 'technique') renderTechnique(r.id);
 }
 
 document.addEventListener('click', async (e) => {
   const t = e.target.closest('button, a');
   if (!t) return;
   const r = route();
-  const step = r.name === 'stap' ? stepById(r.id) : null;
+  const step = r.name === 'step' ? stepById(r.id) : null;
 
   if (t.id === 'reset-demo') return confirmReset();
   if (t.id === 'do-reset') {
@@ -894,12 +850,12 @@ document.addEventListener('click', async (e) => {
     ui.videoUrl = null;
     setStatus('');
     $('#dialog').close();
-    toast('Demo is gereset');
+    toast('Demo has been reset');
     if (location.hash === '#/' || location.hash === '') render(); else location.hash = '#/';
     return;
   }
   if (t.dataset.close) {
-    if (t.dataset.save) { state = toggleSaved(state, t.dataset.save); persist(); renderNav(route()); refreshLists(); toast(state.saved.includes(t.dataset.save) ? 'Techniek opgeslagen' : 'Uit opgeslagen verwijderd'); }
+    if (t.dataset.save) { state = toggleSaved(state, t.dataset.save); persist(); renderNav(route()); refreshLists(); toast(state.saved.includes(t.dataset.save) ? 'Technique saved' : 'Removed from saved'); }
     $('#dialog').close();
     return;
   }
@@ -910,7 +866,7 @@ document.addEventListener('click', async (e) => {
     state = toggleSaved(state, id);
     persist();
     renderNav(route());
-    toast(state.saved.includes(id) ? 'Techniek opgeslagen' : 'Uit opgeslagen verwijderd');
+    toast(state.saved.includes(id) ? 'Technique saved' : 'Removed from saved');
     refreshLists();
     return;
   }
@@ -923,8 +879,8 @@ document.addEventListener('click', async (e) => {
     drawAnalysis();
     return;
   }
-  if (t.id === 'adopt') { state = adoptAnalysis(state); persist(); drawAnalysis(); toast('Fragmenten overgenomen in je leerpad'); return; }
-  if (t.id === 'discard') { state = discardAnalysis(state); persist(); drawAnalysis(); toast('Analyse verwijderd'); return; }
+  if (t.id === 'adopt') { state = adoptAnalysis(state); persist(); drawAnalysis(); toast('Segments adopted in your learning path'); return; }
+  if (t.id === 'discard') { state = discardAnalysis(state); persist(); drawAnalysis(); toast('Analysis removed'); return; }
   if (t.id === 'remove-video') {
     await deleteVideo();
     if (ui.videoUrl) URL.revokeObjectURL(ui.videoUrl);
@@ -935,7 +891,7 @@ document.addEventListener('click', async (e) => {
     drawVideoCard();
     drawAnalysis();
     renderNav(route());
-    toast('Video verwijderd');
+    toast('Video removed');
     return;
   }
   if (t.dataset.seek) {
@@ -948,8 +904,6 @@ document.addEventListener('click', async (e) => {
 
   if (!step) return;
 
-  if (t.id === 'play') { ui.playing ? (stopDemo(), drawDemo(step)) : startDemo(step); return; }
-  if (t.id === 'replay') { stopDemo(); ui.pos = 0; startDemo(step); return; }
   if (t.dataset.coach) return talk(step, t.dataset.coach);
   if (t.id === 'tried' || t.id === 'mark-done') { ui.phase = 'reflect'; renderFinish(step); $('#fin-title').setAttribute('tabindex', '-1'); $('#fin-title').focus(); return; }
   if (t.id === 'back-practice') { ui.phase = 'learn'; renderFinish(step); return; }
@@ -958,7 +912,7 @@ document.addEventListener('click', async (e) => {
 
 document.addEventListener('submit', (e) => {
   const r = route();
-  const step = r.name === 'stap' ? stepById(r.id) : null;
+  const step = r.name === 'step' ? stepById(r.id) : null;
   if (e.target.id === 'ask' && step) {
     e.preventDefault();
     const input = $('#q');
@@ -977,13 +931,6 @@ document.addEventListener('submit', (e) => {
 });
 
 document.addEventListener('input', (e) => {
-  if (e.target.id === 'scrub') {
-    const step = stepById(route().id);
-    if (!step) return;
-    stopDemo();
-    ui.pos = Number(e.target.value);
-    drawDemo(step);
-  }
   if (e.target.id === 'f-q') { ui.search.query = e.target.value; drawResults(); }
   if (e.target.id === 'note') ui.note = e.target.value;
   if (e.target.name === 'choice') ui.choice = e.target.value;
@@ -997,18 +944,17 @@ document.addEventListener('change', (e) => {
     state = setSegmentStep(state, e.target.dataset.segStep, Number(e.target.value) || null);
     persist();
     drawAnalysis();
-    toast('Koppeling aangepast. Bevestig opnieuw om te gebruiken.');
+    toast('Link changed. Confirm again to use it.');
   }
 });
 
 $('#dialog').addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close(); });
 window.addEventListener('hashchange', () => render());
-window.addEventListener('pagehide', stopDemo);
 
 /* ---------- Start ---------- */
 
 async function init() {
-  document.title = `${APP_NAME} · origami-coach (prototype)`;
+  document.title = `${APP_NAME} · origami coach (prototype)`;
   if (state.video) {
     const blob = await loadVideo();
     if (blob) ui.videoUrl = URL.createObjectURL(blob);
@@ -1018,8 +964,8 @@ async function init() {
   getAiStatus().then((s) => {
     const note = $('#foot-note');
     if (note) note.textContent = s.connected
-      ? `AI verbonden (${s.model}). Antwoorden en videoanalyse komen van Claude via de server; elk antwoord toont zijn bron.`
-      : 'Prototype: AI niet verbonden. De begeleider gebruikt voorbeeldantwoorden en een echte videoanalyse is niet beschikbaar.';
+      ? `AI connected (${s.model}). Answers and video analysis come from Claude via the server; each answer shows its source.`
+      : 'Prototype: AI not connected. The coach uses sample answers and a real video analysis is not available.';
   });
 }
 init();

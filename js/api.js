@@ -36,12 +36,12 @@ export async function postJson(path, body, timeoutMs = 120_000) {
       signal: ctrl.signal,
     });
   } catch (e) {
-    throw new Error(e?.name === 'AbortError' ? 'Het duurde te lang.' : 'De server is niet bereikbaar.');
+    throw new Error(e?.name === 'AbortError' ? 'It took too long.' : 'The server cannot be reached.');
   } finally {
     clearTimeout(t);
   }
   let data = null;
   try { data = await res.json(); } catch { /* geen JSON */ }
-  if (!res.ok) throw new Error(data?.message || `Fout ${res.status}`);
+  if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
   return data;
 }

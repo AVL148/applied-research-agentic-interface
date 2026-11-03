@@ -13,7 +13,7 @@ const memory = () => { const m = new Map(); return { getItem: (k) => m.get(k) ??
 
 test('naam en project zijn de origami-onderzoeksversie', () => {
   assert.equal(APP_NAME, 'applied research agentic interface');
-  assert.match(PROJECT.title, /kraanvogel/i);
+  assert.match(PROJECT.title, /crane/i);
   assert.match(STORAGE_KEY, /applied-research-agentic-interface/);
 });
 
@@ -84,17 +84,17 @@ test('voorbeeldanalyse is duidelijk gemarkeerd als gesimuleerd', () => {
   assert.equal(a.source, 'sample');
   assert.equal(a.segments.length, STEPS.length);
   assert.ok(a.segments.every((x) => x.uncertain));
-  assert.match(a.summary, /gesimuleerd/i);
+  assert.match(a.summary, /simulated/i);
   assert.equal(a.segments.at(-1).end, 100);
   assert.deepEqual([sampleAnalysis(900, STEPS).segments[2].start, sampleAnalysis(900, STEPS).segments[2].end], [160, 340]);
 });
 
 test('coach valt zonder server terug op voorbeeldantwoorden en blijft eerlijk', async () => {
   const step = STEPS[2];
-  const a = await askCoach({ kind: 'question', step, question: 'mijn vallei is te scherp' });
+  const a = await askCoach({ kind: 'question', step, question: 'my valley fold is too sharp' });
   assert.equal(a.simulated, true);
   assert.match(a.text, /valley/i);
-  const b = await askCoach({ kind: 'question', step, question: 'wat is de zin van het leven' });
+  const b = await askCoach({ kind: 'question', step, question: 'what is the meaning of life' });
   assert.equal(b.simulated, true);
   const h = await askCoach({ kind: 'hint', step, history: [] });
   assert.equal(h.text, step.hints[0]);
@@ -110,7 +110,7 @@ test('elke stap heeft volledige inhoud', () => {
 test('vaste videoindeling: tijden per stap, stap 6 vervallen', () => {
   const times = STEPS.map((x) => [x.video.start, x.video.end]);
   assert.deepEqual(times, [[0, 61], [61, 160], [160, 340], [340, 480], [480, 630], [630, 760], [760, null]]);
-  assert.ok(!STEPS.some((x) => /symmetrie controleren/i.test(x.title)));
+  assert.ok(!STEPS.some((x) => /symmetry/i.test(x.title)));
   const s = setVideoMeta(defaultState(), { name: 'k.mp4', size: 1, type: 'video/mp4', duration: 900 });
   assert.deepEqual([segmentForStep(s, 3).start, segmentForStep(s, 3).end], [160, 340]);
   assert.equal(segmentForStep(s, 7).end, 900, 'laatste fragment loopt tot het einde');

@@ -40,3 +40,17 @@ test('spiegelen in een vouwlijn is exact (reverse fold)', () => {
 test('technieken zijn niet langer alleen een uitleg: nieuwe preliminary base is toegevoegd', () => {
   assert.ok(TECHNIQUES.some((t) => /preliminary/i.test(t.name)));
 });
+
+test('geen tijdsindicaties meer in stappen en project', async () => {
+  const { PROJECT } = await import('../js/data.js');
+  assert.ok(!('totalTime' in PROJECT));
+  for (const s of STEPS) assert.ok(!('minutes' in s) && !('demoSeconds' in s));
+});
+
+test('valley fold en mountain fold hebben verschillende tekeningen en tekst', () => {
+  const a = GUIDES.t1.steps.map((s) => drawing(s.shapes, 'x'));
+  const b = GUIDES.t2.steps.map((s) => drawing(s.shapes, 'x'));
+  for (let i = 0; i < 3; i++) assert.notEqual(a[i].replace(/ah\d+/g, ''), b[i].replace(/ah\d+/g, ''));
+  assert.notEqual(GUIDES.t1.goal, GUIDES.t2.goal);
+  assert.match(b[0], /l-hidden/);
+});

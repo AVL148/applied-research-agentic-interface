@@ -12,44 +12,44 @@ import { getAiStatus, postJson } from './api.js';
 
 const KEYWORDS = [
   {
-    words: ['vallei', 'dal', 'naar binnen', 'scherp', 'vleugel', 'druk'],
-    text: 'Deze valley fold voelt nog wat te hard of te ruw aan. Laat de binnenkant juist zacht tegen elkaar leggen en controleer de vouw nogmaals aan de hand van de kraanvogelvideo.',
-    followUp: 'Was de vouw te strak of te los?',
+    words: ['valley', 'sharp', 'pressure', 'press', 'inside', 'rough'],
+    text: 'This valley fold sounds a bit too hard or rough. Let the inside edges meet gently and check the fold again against the crane video.',
+    followUp: 'Was the fold too tight or too loose?',
   },
   {
-    words: ['berg', 'omhoog', 'buiten', 'contour', 'snavel', 'staart'],
-    text: 'Bij een mountain fold helpt het om de contour eerst heel licht te markeren. Dan blijft de vorm scherp zonder dat het papier scheurt.',
-    followUp: 'Wil je de bergvouw nog in een kleine stap voor de kraanvogel zien?',
+    words: ['mountain', 'ridge', 'outline', 'contour', 'beak', 'tail'],
+    text: 'With a mountain fold it helps to mark the outline very lightly first. That keeps the shape sharp without tearing the paper.',
+    followUp: 'Would you like to see the mountain fold as a small step for the crane?',
   },
   {
-    words: ['symmetrie', 'links', 'rechts', 'scheef', 'midden', 'even'],
-    text: 'Controleer beide vleugels tegelijk. Kleine asymmetrie aan één kant blijft vaak zichtbaar in het hele model.',
-    followUp: 'Zit het probleem vooral links of rechts?',
+    words: ['symmetry', 'left', 'right', 'crooked', 'centre', 'center', 'uneven'],
+    text: 'Check both wings at the same time. A small asymmetry on one side often stays visible in the whole model.',
+    followUp: 'Is the problem mostly on the left or the right?',
   },
   {
-    words: ['hoek', 'punt', 'rand', 'vleugel', 'snavel', 'staart'],
-    text: 'Je zit dicht bij de juiste vorm. Maak de buitenste contour nog iets scherper en vergelijk dat daarna weer met de referentievideo.',
-    followUp: 'Welke hoek of rand valt het meest op?',
+    words: ['angle', 'corner', 'point', 'edge', 'wing', 'beak'],
+    text: 'You are close to the right shape. Sharpen the outer outline a little more and then compare it with the reference video again.',
+    followUp: 'Which angle or edge stands out most?',
   },
   {
-    words: ['papier', 'scheur', 'krimp', 'kreukel', 'vouw'],
-    text: 'Neem even een rustmoment en bekijk de vouw van dichtbij. Een nette kraanvogel ontstaat vaak door kleine, gecontroleerde vouwen in plaats van een harde druk.',
+    words: ['paper', 'tear', 'torn', 'crumple', 'wrinkle', 'fold'],
+    text: 'Take a short rest and look at the fold up close. A neat crane usually comes from small, controlled folds rather than hard pressure.',
   },
 ];
 
 const FALLBACKS = [
-  'Ik zie nog niet precies wat je aan de vouw wilt verbeteren. Laat me weten waar de kraanvogel in de video anders is dan op jouw papier.',
-  'Dat kan ik niet alleen uit de omschrijving bepalen. Vergelijk één duidelijke plek met de video en dan kunnen we focussen op de afwijking.',
+  'I cannot see exactly what you want to improve about the fold. Tell me where the crane in the video differs from your paper.',
+  'I cannot tell from the description alone. Compare one clear spot with the video and then we can focus on the difference.',
 ];
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function localReply({ kind, step, question = '', history = [] }) {
   if (kind === 'welcome') {
-    return { simulated: true, text: `We werken aan “${step.title}”. Je bepaalt zelf het tempo. Upload eerst een bestaande kraanvogelvideo, vergelijk daarna de vouw met de referentie en vraag me wat je wilt.` };
+    return { simulated: true, text: `We are working on “${step.title}”. You set the pace. Follow the step-by-step plan, compare your fold with the reference and ask me whatever you like.` };
   }
   if (kind === 'explain') {
-    return { simulated: true, text: step.easier, followUp: 'Is dit duidelijker, of zal ik een onderdeel nog anders uitleggen?' };
+    return { simulated: true, text: step.easier, followUp: 'Is this clearer, or shall I explain a part differently?' };
   }
   if (kind === 'hint') {
     const used = history.filter((m) => m.from === 'coach' && m.kind === 'hint').length;
@@ -79,7 +79,7 @@ export async function askCoach(args) {
       return { simulated: false, text: out.text, followUp: out.followUp };
     } catch (e) {
       await delay(100);
-      return { ...localReply(args), notice: `De AI is nu niet bereikbaar (${e.message}). Dit is een voorbeeldantwoord.` };
+      return { ...localReply(args), notice: `The AI cannot be reached right now (${e.message}). This is a sample answer.` };
     }
   }
   await delay(350);

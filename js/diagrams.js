@@ -12,6 +12,7 @@ export const poly = (points, side = 'f') => ({ k: 'poly', points, side });
 export const valley = (a, b) => ({ k: 'line', a, b, style: 'valley' });
 export const mountain = (a, b) => ({ k: 'line', a, b, style: 'mountain' });
 export const crease = (a, b) => ({ k: 'line', a, b, style: 'crease' });
+export const hidden = (a, b) => ({ k: 'line', a, b, style: 'hidden' });
 export const edge = (a, b) => ({ k: 'line', a, b, style: 'edge' });
 // bend: sideways bulge of the arrow in px (0 = straight)
 export const arrow = (a, b, bend = 0) => ({ k: 'arrow', a, b, bend });
@@ -89,14 +90,14 @@ export const FR = {
     poly(SQ, 'f'),
     valley([40, 40], [200, 200]),
     arrow([62, 178], [178, 62], -30),
-    label('dalvouw', 120, 228),
+    label('valley fold', 120, 228),
   ],
 
   diagonalsCreased: () => [
     poly(SQ, 'f'),
     crease([40, 40], [200, 200]),
     crease([200, 40], [40, 200]),
-    label('beide diagonalen gevouwen en weer open', 120, 228),
+    label('both diagonals folded and unfolded', 120, 228),
   ],
 
   flippedMidlines: () => [
@@ -106,7 +107,7 @@ export const FR = {
     valley([120, 40], [120, 200]),
     valley([40, 120], [200, 120]),
     arrow([210, 120], [190, 120], 0),
-    label('omgedraaid: witte kant boven', 120, 228),
+    label('turned over: white side up', 120, 228),
   ],
 
   allCreased: () => [
@@ -115,7 +116,7 @@ export const FR = {
     crease([200, 40], [40, 200]),
     crease([120, 40], [120, 200]),
     crease([40, 120], [200, 120]),
-    label('8 vouwlijnen in het papier', 120, 228),
+    label('8 creases in the paper', 120, 228),
   ],
 
   collapse: () => [
@@ -127,14 +128,14 @@ export const FR = {
     arrow([22, 120], [70, 120]),
     arrow([218, 120], [170, 120]),
     arrow([120, 22], [120, 70]),
-    label('duw de zijkanten naar binnen', 120, 232),
+    label('push the sides inwards', 120, 232),
   ],
 
   prelimBase: () => [
     poly(DIAMOND, 'f'),
     crease([120, 40], [120, 200]),
-    label('gesloten punt', 120, 30),
-    label('open kant (4 flappen)', 120, 222),
+    label('closed point', 120, 30),
+    label('open end (4 flaps)', 120, 222),
   ],
 
   kiteLines: () => [
@@ -144,7 +145,7 @@ export const FR = {
     valley([120, 200], KC),
     arrow([80, 160], [117, 144], -8),
     arrow([160, 160], [123, 144], 8),
-    label('vouw de onderste randen naar het midden', 120, 20),
+    label('fold the lower edges to the centre', 120, 20),
   ],
 
   kite: () => [
@@ -153,7 +154,7 @@ export const FR = {
     poly([[120, 200], KC, KM], 'b'),
     crease([120, 40], KM),
     crease(KM, [120, 200]),
-    label('drachtvorm (kite)', 120, 228),
+    label('kite shape', 120, 228),
   ],
 
   /* ---- Bird base (tekening volgt panelen 12–13 van de referentie) ---- */
@@ -163,7 +164,7 @@ export const FR = {
     poly([[120, 200], KC, KM], 'b'),
     valley(KB, KC),
     arrow([120, 46], [120, 80], 0),
-    label('vouw de bovenpunt omlaag en weer open', 120, 228),
+    label('fold the top point down and unfold', 120, 228),
   ],
 
   petalLift: () => [
@@ -173,7 +174,7 @@ export const FR = {
     arrow([120, 196], [120, 58], 0),
     arrow([66, 118], [96, 118]),
     arrow([174, 118], [144, 118]),
-    label('til de onderpunt omhoog, zijkanten klappen mee', 120, 228),
+    label('lift the bottom point, the sides fold in', 120, 228),
   ],
 
   birdBase: () => [
@@ -181,7 +182,7 @@ export const FR = {
     crease([120, 24], [120, 216]),
     crease([72, 112], [120, 216]),
     crease([168, 112], [120, 216]),
-    label('vogelbasis', 120, 14),
+    label('bird base', 120, 14),
   ],
 
   /* ---- Smalle vogelbasis (panelen 13–15) ---- */
@@ -192,13 +193,13 @@ export const FR = {
     valley([156, 92], [120, 216]),
     arrow([86, 150], [111, 150]),
     arrow([154, 150], [129, 150]),
-    label('zijranten naar de middenlijn', 120, 14),
+    label('side edges to the centre line', 120, 14),
   ],
 
   narrow: () => [
     poly([[120, 24], [146, 100], [120, 216], [94, 100]], 'f'),
     crease([120, 24], [120, 216]),
-    label('smalle vorm', 120, 14),
+    label('narrow shape', 120, 14),
   ],
 
   /* ---- Reverse fold op een smalle punt: exacte spiegeling over de vouwlijn ---- */
@@ -207,7 +208,7 @@ export const FR = {
     crease([120, 40], [120, 200]),
     valley([100, 150], [140, 110]),
     arrow([120, 196], [92, 150], 16),
-    label('vouwlijn', 170, 100, 'start'),
+    label('fold line', 170, 100, 'start'),
   ],
 
   reverseDone: (side = 'f') => {
@@ -219,7 +220,7 @@ export const FR = {
       poly([[105, 40], [135, 40], [135, 115], [105, 145]], 'f'),
       poly(reflectAll(lower, a, b), side),
       crease([105, 145], [135, 115]),
-      label('punt wijst nu de andere kant op', 120, 228),
+      label('the point now faces the other way', 120, 228),
     ];
   },
 };
