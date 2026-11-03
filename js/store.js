@@ -6,11 +6,11 @@ export const STORAGE_KEY = 'applied-research-agentic-interface:v1';
 export function defaultState() {
   return {
     schema: 2,
-    // Beginsituatie van de demo: stap 1 en 2 zijn al klaar, stap 3 is actief.
-    completed: [1, 2],
+    // Start from zero: nothing completed, step 1 is active.
+    completed: [],
     reflections: {}, // { [stapId]: { choice, note } | { skipped: true } }
-    saved: ['t1'], // opgeslagen technieken
-    recent: [2], // recent bekeken demonstraties (stap-id's)
+    saved: [], // saved techniques
+    recent: [], // recently viewed steps
     chats: {}, // { [stapId]: [{ from, text }] }
     video: null, // { name, size, type, duration } van de geüploade video (het bestand zelf staat in IndexedDB)
     analysis: null, // { source: 'ai'|'sample', summary, warnings, segments: [...], adopted }
@@ -38,6 +38,11 @@ function migrateV1(old) {
     out.analysis = { ...old.analysis, segments: old.analysis.segments.map((s) => ({ ...s, stepId: OLD_TO_NEW[s.stepId] ?? null })) };
   }
   return out;
+}
+
+// Resets only the learning plan; the video, its analysis and saved techniques stay.
+export function resetLearningPlan(state) {
+  return { ...state, completed: [], reflections: {}, chats: {}, recent: [] };
 }
 
 export function saveState(state, storage = globalThis.localStorage) {
@@ -88,11 +93,11 @@ export function appendChat(state, stepId, messages) {
   return { ...state, chats: { ...state.chats, [stepId]: [...prev, ...messages] } };
 }
 
-export function filterTechniques(list, { query = '', craft = 'Alle', level = 'Alle' }) {
+export function filterTechniques(list, { query = '', craft = 'All', level = 'All' }) {
   const q = query.trim().toLowerCase();
   return list.filter((t) => {
-    if (craft !== 'Alle' && t.craft !== craft) return false;
-    if (level !== 'Alle' && t.level !== level) return false;
+    if (craft !== 'All' && t.craft !== craft) return false;
+    if (level !== 'All' && t.level !== level) return false;
     if (!q) return true;
     return [t.name, t.description, t.material, t.craft].join(' ').toLowerCase().includes(q);
   });

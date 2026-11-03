@@ -1,5 +1,6 @@
 // Verbinding met de AI-backend. De browser praat nooit rechtstreeks met Claude en heeft geen sleutel.
 import { API_BASE } from './config.js';
+import { t } from './i18n.js';
 
 let statusCache = null;
 
@@ -36,12 +37,12 @@ export async function postJson(path, body, timeoutMs = 120_000) {
       signal: ctrl.signal,
     });
   } catch (e) {
-    throw new Error(e?.name === 'AbortError' ? 'It took too long.' : 'The server cannot be reached.');
+    throw new Error(e?.name === 'AbortError' ? t('It took too long.') : t('The server cannot be reached.'));
   } finally {
     clearTimeout(t);
   }
   let data = null;
   try { data = await res.json(); } catch { /* geen JSON */ }
-  if (!res.ok) throw new Error(data?.message || `Error ${res.status}`);
+  if (!res.ok) throw new Error(t(data?.message || `Error ${res.status}`));
   return data;
 }

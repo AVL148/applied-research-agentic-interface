@@ -2,6 +2,16 @@
 // Het model kan met ANTHROPIC_MODEL worden overschreven.
 
 export const DEFAULT_MODEL = 'claude-sonnet-5-5';
+export const LANGUAGES = { en: 'English', nl: 'Dutch', fr: 'French' };
+export const langName = (code) => LANGUAGES[code] || 'English';
+export const forLang = (text, code) => text.replace(/\{LANGUAGE\}/g, langName(code));
+const BASED_ON = {
+  en: (n) => `Based on ${n} single frames, without sound. Details between the frames may be missing.`,
+  nl: (n) => `Gebaseerd op ${n} losse beelden, zonder geluid. Details tussen de beelden kunnen ontbreken.`,
+  fr: (n) => `Basé sur ${n} images isolées, sans son. Des détails entre les images peuvent manquer.`,
+};
+const SEGMENT_WORD = { en: 'Segment', nl: 'Fragment', fr: 'Séquence' };
+
 export const MAX_FRAMES = 16;
 export const MAX_FRAME_CHARS = 600_000; // ± 450 kB per beeld (base64)
 
@@ -73,7 +83,7 @@ const fmtTime = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padSt
 
 export const COACH_SYSTEM = `You are the coach in an origami learning environment. You help a beginner fold a paper crane.
 Rules:
-- Answer in clear English, short and concrete (at most 4 sentences).
+- Answer in clear {LANGUAGE}, short and concrete (at most 4 sentences).
 - You do NOT see the user's paper. Never judge work you have not seen; ask one clarifying question instead.
 - Say honestly when information is missing or you are not sure. Do not invent folding steps outside the given step.
 - You do not carry out steps and you never say that a step is finished. The user decides the pace and when something is done.
@@ -101,7 +111,7 @@ export async function coachReply(cfg, body, opts = {}) {
   const step = body?.step;
   if (!step || typeof step.id !== 'number' || typeof step.title !== 'string') throw new AiError('bad_request', 'Invalid request.', 400);
   const content = buildCoachContent({ ...body, step });
-  const raw = await callClaude(cfg, { system: COACH_SYSTEM, content, maxTokens: 500, ...opts });
+  const raw = await callClaude(cfg, { system: forLang(COACH_SYSTEM, body?.lang), content, maxTokens: 500, ...opts });
   const obj = parseJsonLoose(raw);
   const text = clip(obj?.text ?? raw, 900);
   const followUp = clip(obj?.followUp ?? '', 300);
@@ -115,7 +125,7 @@ Rules:
 - Describe only what you see in the frames. Do not invent details that are not visible. If in doubt, set "uncertain" to true.
 - Divide the video into consecutive segments (folding phases). Use only the timestamps of the supplied frames and the total duration.
 - Link each segment to the best matching step id from the list, or null if no step fits.
-- Write in clear English. Give each segment a short title, a description (max 2 sentences) and one point of attention.
+- Write in clear {LANGUAGE}. Give each segment a short title, a description (max 2 sentences) and one point of attention.
 - The tone is supportive. Do not judge the user; you only see the video.
 Give ONLY JSON in this format:
 {"summary":"...","segments":[{"start":0,"end":12.5,"title":"...","description":"...","tip":"...","stepId":1,"uncertain":false}],"warnings":["..."]}`;
@@ -148,7 +158,7 @@ export function buildAnalyseContent({ frames, duration, steps }) {
 }
 
 // Maakt van de ruwe AI-uitvoer een betrouwbaar, begrensd resultaat.
-export function validateAnalysis(raw, { duration, stepIds }) {
+export function validateAnalysis(raw, { duration, stepIds, lang = 'en' }) {
   const segs = Array.isArray(raw?.segments) ? raw.segments : [];
   const out = [];
   for (const s of segs.slice(0, 20)) {
@@ -162,7 +172,7 @@ export function validateAnalysis(raw, { duration, stepIds }) {
     out.push({
       start: Math.round(start * 10) / 10,
       end: Math.round(end * 10) / 10,
-      title: clip(s?.title, 100) || 'Segment',
+      title: clip(s?.title, 100) || (SEGMENT_WORD[lang] || 'Segment'),
       description: clip(s?.description, 400),
       tip: clip(s?.tip, 250),
       stepId,
@@ -181,11 +191,11 @@ export async function analyseVideo(cfg, body, opts = {}) {
   const steps = (Array.isArray(body?.project?.steps) ? body.project.steps : []).filter((s) => Number.isInteger(s?.id) && typeof s?.title === 'string').slice(0, 20);
   if (!steps.length) throw new AiError('bad_request', 'Steps are missing.', 400);
   const content = buildAnalyseContent({ frames, duration, steps });
-  const raw = await callClaude(cfg, { system: ANALYSE_SYSTEM, content, maxTokens: 2500, ...opts });
+  const raw = await callClaude(cfg, { system: forLang(ANALYSE_SYSTEM, body?.lang), content, maxTokens: 2500, ...opts });
   const obj = parseJsonLoose(raw);
   if (!obj) throw new AiError('bad_output', 'The AI gave an answer that could not be read. Please try again.', 502);
-  const result = validateAnalysis(obj, { duration, stepIds: steps.map((s) => s.id) });
+  const result = validateAnalysis(obj, { duration, stepIds: steps.map((s) => s.id), lang: body?.lang });
   if (!result.segments.length) throw new AiError('bad_output', 'The AI found no usable segments in this video.', 502);
-  result.warnings.unshift(`Based on ${frames.length} single frames, without sound. Details between the frames may be missing.`);
+  result.warnings.unshift((BASED_ON[body?.lang] || BASED_ON.en)(frames.length));
   return { ...result, framesUsed: frames.length, model: cfg.model };
 }

@@ -4,7 +4,7 @@ import { APP_NAME, PROJECT, STEPS, TECHNIQUES } from '../js/data.js';
 import {
   defaultState, loadState, saveState, resetState, currentStepId, stepStatus,
   completeStep, toggleSaved, filterTechniques, STORAGE_KEY,
-  setVideoMeta, clearVideo, setAnalysis, setSegmentStep, adoptAnalysis, segmentForStep,
+  setVideoMeta, clearVideo, setAnalysis, setSegmentStep, adoptAnalysis, segmentForStep, resetLearningPlan,
 } from '../js/store.js';
 import { askCoach } from '../js/coach.js';
 import { sampleAnalysis } from '../js/video.js';
@@ -17,32 +17,32 @@ test('naam en project zijn de origami-onderzoeksversie', () => {
   assert.match(STORAGE_KEY, /applied-research-agentic-interface/);
 });
 
-test('startsituatie: stap 3 van 7 is actief', () => {
+test('start situation: step 1 of 7 is active', () => {
   const s = defaultState();
   assert.equal(STEPS.length, 7);
-  assert.equal(currentStepId(s), 3);
-  assert.equal(stepStatus(s, 1), 'done');
-  assert.equal(stepStatus(s, 3), 'current');
-  assert.equal(stepStatus(s, 4), 'upcoming');
+  assert.equal(currentStepId(s), 1);
+  assert.equal(stepStatus(s, 1), 'current');
+  assert.equal(stepStatus(s, 2), 'upcoming');
+  assert.deepEqual(s.completed, []);
 });
 
 test('voortgang verandert alleen via completeStep', () => {
   const s = defaultState();
-  const after = completeStep(s, 3, { choice: 'x' });
-  assert.deepEqual(s.completed, [1, 2]);
-  assert.deepEqual(after.completed, [1, 2, 3]);
-  assert.equal(currentStepId(after), 4);
-  assert.deepEqual(completeStep(after, 3).completed, [1, 2, 3]);
+  const after = completeStep(s, 1, { choice: 'x' });
+  assert.deepEqual(s.completed, []);
+  assert.deepEqual(after.completed, [1]);
+  assert.equal(currentStepId(after), 2);
+  assert.deepEqual(completeStep(after, 1).completed, [1]);
 });
 
 test('opslag, laden en resetten', () => {
   const st = memory();
   saveState(completeStep(defaultState(), 3), st);
-  assert.deepEqual(loadState(st).completed, [1, 2, 3]);
-  assert.deepEqual(resetState(st).completed, [1, 2]);
+  assert.deepEqual(loadState(st).completed, [3]);
+  assert.deepEqual(resetState(st).completed, []);
   assert.equal(st.getItem(STORAGE_KEY), null);
   st.setItem(STORAGE_KEY, '{kapot');
-  assert.deepEqual(loadState(st).completed, [1, 2]);
+  assert.deepEqual(loadState(st).completed, []);
 });
 
 test('oude opgeslagen staat zonder videovelden blijft werken', () => {
@@ -126,4 +126,25 @@ test('oude opgeslagen voortgang met 8 stappen wordt omgezet', () => {
   assert.deepEqual(s.completed, [1, 2, 3, 6, 7]);
   assert.deepEqual(s.recent, [7]);
   assert.equal(s.schema, 2);
+});
+
+test('reset learning plan keeps the video, analysis and saved techniques', () => {
+  let s = setVideoMeta(defaultState(), { name: 'k.mp4', size: 1, type: 'video/mp4', duration: 900 });
+  s = toggleSaved(s, 't2');
+  s = completeStep(s, 1, { choice: 'x' });
+  s = { ...s, chats: { 1: [{ from: 'you', text: 'hi' }] }, recent: [1] };
+  const r = resetLearningPlan(s);
+  assert.deepEqual(r.completed, []);
+  assert.deepEqual(r.reflections, {});
+  assert.deepEqual(r.chats, {});
+  assert.deepEqual(r.recent, []);
+  assert.equal(currentStepId(r), 1);
+  assert.equal(r.video.name, 'k.mp4');
+  assert.deepEqual(r.saved, s.saved);
+});
+
+test('technique filter shows everything by default (regression)', () => {
+  assert.equal(filterTechniques(TECHNIQUES, {}).length, TECHNIQUES.length);
+  assert.equal(filterTechniques(TECHNIQUES, { craft: 'All', level: 'All' }).length, TECHNIQUES.length);
+  assert.ok(filterTechniques(TECHNIQUES, { craft: 'Origami' }).every((t) => t.craft === 'Origami'));
 });

@@ -9,19 +9,19 @@
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <a class="skip" href="#main">Skip to content</a>
+  <a class="skip" href="#main" data-i18n="Skip to content">Skip to content</a>
   <div class="shell">
     <header class="topbar">
       <a class="brand" href="#/" aria-label="applied research agentic interface">applied research agentic interface</a>
-      <nav id="nav" aria-label="Main navigation"></nav>
+      <div class="top-right"><label class="sr" for="lang" data-i18n="Language">Language</label><select id="lang" class="lang-select"></select><nav id="nav" aria-label="Main navigation" data-i18n-label="Main navigation"></nav></div>
     </header>
     <main id="main" tabindex="-1"></main>
     <footer class="foot">
       <div class="foot-text">
-        <p>Origami crane research: upload an existing video, compare the folding steps with the AI analysis and decide whether the interface works better than a normal video.</p>
-        <p id="foot-note" role="status">Checking AI status…</p>
+        <p data-i18n="Origami crane research: upload an existing video, compare the folding steps with the AI analysis and decide whether the interface works better than a normal video.">Origami crane research: upload an existing video, compare the folding steps with the AI analysis and decide whether the interface works better than a normal video.</p>
+        <p id="foot-note" role="status" data-i18n="Checking AI status…">Checking AI status…</p>
       </div>
-      <button type="button" class="btn btn-quiet" id="reset-demo">Reset demo</button>
+      <div class="foot-actions"><button type="button" class="btn btn-quiet" id="reset-plan" data-i18n="Reset learning plan">Reset learning plan</button><button type="button" class="btn btn-quiet" id="reset-demo" data-i18n="Reset demo">Reset demo</button></div>
     </footer>
   </div>
 

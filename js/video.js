@@ -1,13 +1,15 @@
 // Video: bewaren in IndexedDB (blijft na herladen, verlaat je apparaat niet) en beelden eruit halen.
 // Alleen losse JPEG-beelden worden naar de server gestuurd als je zelf op "Analyseer" klikt.
 
+import { t } from './i18n.js';
+
 const DB = 'agentic-interface';
 const STORE = 'files';
 const KEY = 'video';
 
 function openDb() {
   return new Promise((resolve, reject) => {
-    if (!globalThis.indexedDB) return reject(new Error('IndexedDB is not available'));
+    if (!globalThis.indexedDB) return reject(new Error(t('IndexedDB is not available')));
     const req = indexedDB.open(DB, 1);
     req.onupgradeneeded = () => req.result.createObjectStore(STORE);
     req.onsuccess = () => resolve(req.result);
@@ -40,7 +42,7 @@ function loadMeta(url) {
     v.muted = true;
     v.preload = 'auto';
     v.playsInline = true;
-    const timer = setTimeout(() => reject(new Error('The video could not be read (time limit).')), 15000);
+    const timer = setTimeout(() => reject(new Error(t('The video could not be read (time limit).'))), 15000);
     v.onloadedmetadata = async () => {
       // Sommige opnames melden geen duur (Infinity); dit trucje haalt hem alsnog op.
       if (v.duration === Infinity) {
@@ -51,7 +53,7 @@ function loadMeta(url) {
       clearTimeout(timer);
       resolve(v);
     };
-    v.onerror = () => { clearTimeout(timer); reject(new Error('Your browser cannot read this video format. Try MP4 (H.264) or WebM.')); };
+    v.onerror = () => { clearTimeout(timer); reject(new Error(t('Your browser cannot read this video format. Try MP4 (H.264) or WebM.'))); };
     v.src = url;
   });
 }
@@ -60,7 +62,7 @@ export async function readVideoInfo(blob) {
   const url = URL.createObjectURL(blob);
   try {
     const v = await loadMeta(url);
-    if (!Number.isFinite(v.duration) || v.duration <= 0) throw new Error('The duration of the video is unknown.');
+    if (!Number.isFinite(v.duration) || v.duration <= 0) throw new Error(t('The duration of the video is unknown.'));
     return { duration: v.duration, width: v.videoWidth, height: v.videoHeight };
   } finally {
     URL.revokeObjectURL(url);
@@ -69,7 +71,7 @@ export async function readVideoInfo(blob) {
 
 function seek(v, t) {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Getting a frame took too long.')), 10000);
+    const timer = setTimeout(() => reject(new Error(t('Getting a frame took too long.'))), 10000);
     v.onseeked = () => { clearTimeout(timer); resolve(); };
     v.currentTime = t;
   });
@@ -81,7 +83,7 @@ export async function extractFrames(blob, { count = 10, maxWidth = 512, quality 
   try {
     const v = await loadMeta(url);
     const duration = v.duration;
-    if (!Number.isFinite(duration) || duration <= 0) throw new Error('The duration of the video is unknown.');
+    if (!Number.isFinite(duration) || duration <= 0) throw new Error(t('The duration of the video is unknown.'));
     const scale = Math.min(1, maxWidth / (v.videoWidth || maxWidth));
     const canvas = document.createElement('canvas');
     canvas.width = Math.max(1, Math.round((v.videoWidth || maxWidth) * scale));
@@ -107,15 +109,15 @@ export function sampleAnalysis(duration, steps) {
     start: Math.min(s.video.start, Math.max(0, duration - 1)),
     end: s.video.end == null ? duration : Math.min(s.video.end, duration),
     title: s.title,
-    description: 'Fixed layout of the reference video. This is not based on an analysis of your video.',
+    description: t('Fixed layout of the reference video. This is not based on an analysis of your video.'),
     tip: '',
     stepId: s.id,
     uncertain: true,
   }));
   return {
     source: 'sample',
-    summary: 'Simulated sample analysis: the segments follow the fixed layout and say nothing about what happens in your video. Connect the AI for a real analysis.',
-    warnings: ['This is a sample and not an AI analysis.'],
+    summary: t('Simulated sample analysis: the segments follow the fixed layout and say nothing about what happens in your video. Connect the AI for a real analysis.'),
+    warnings: [t('This is a sample and not an AI analysis.')],
     framesUsed: 0,
     segments,
   };
