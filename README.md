@@ -18,6 +18,7 @@ Double-clicking `index.html` does not work (browsers block JavaScript modules on
 ## What the interface does
 
 - **Dashboard, project and learning path** with 7 steps, progress and a reflection per step.
+- **Animated 3D step plan**: most steps show the paper folding in 3D, built for exactly these steps. Play, pause, replay, scrub, *Slow* (0.4x); drag (or use the arrow keys) to rotate, *Reset view* or double-click to return. The drawings stay as a fallback (no WebGL, reduced motion) and for steps that are not animated (narrow, squash, sink).
 - **Step-by-step plan with drawings** for every project step. It works without a video.
 - **Techniques**: click a technique for a step-by-step plan with drawings (what you need, step by step, common mistakes, sources).
 - **Video**: upload an existing video; every step jumps straight to its fixed segment, played at 2x speed. Fixed layout: 0:00–1:01, 1:01–2:40, 2:40–5:40, 5:40–8:00, 8:00–10:30, 10:30–12:40, 12:40–end.
@@ -50,6 +51,11 @@ index.html          shell and dialog
 css/styles.css      design, responsive
 js/data.js          project, steps (with video segments) and techniques
 js/diagrams.js      drawing library for fold diagrams (SVG)
+js/origami/engine.js   folding engine: split faces, hinge chains, layer ordering
+js/origami/crane.js    the crane steps as fold operations
+js/origami/clips.js    clips per step (segments, camera) used by the guides
+js/origami/gl.js       small WebGL renderer (two-sided paper, crease lines)
+js/origami/player.js   player: controls, orbit, fallback
 js/guides.js        step-by-step plans with drawings per technique and project step
 js/store.js         state, localStorage, pure logic
 js/coach.js         coach: Claude via the server, otherwise sample answers
@@ -68,6 +74,7 @@ tests/              node:test
 | --- | --- |
 | Navigation, progress, reflection, storage, techniques | Really works, locally |
 | Step-by-step plans with drawings | Drawn in code; the later steps (neck, head, wings) are schematic |
+| Animated 3D folding | Real rigid folding for the creases, base shape, kite, petal, bird base; the collapse is shown as folding in half twice (same result), the reverse folds, head and wings are rigid approximations with small gaps, and the final crane is stylised |
 | Uploading, storing and playing video, jumping to the fixed segment | Really works, locally |
 | Coach and video analysis with Claude | Works once the server has a valid `ANTHROPIC_API_KEY`; tested with a mock Claude, not yet with a real key |
 | Image analysis of your own folded model | Not built yet |

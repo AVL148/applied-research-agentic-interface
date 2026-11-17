@@ -9,6 +9,8 @@ import { getAiStatus, postJson, resetStatusCache } from './api.js';
 import { t as tr, LANG, LANGS, setLang } from './i18n.js';
 import { GUIDES, PLANS } from './guides.js';
 import { drawing } from './diagrams.js';
+import { mountPlayer } from './origami/player.js';
+import { isStill } from './origami/clips.js';
 import { saveVideo, loadVideo, deleteVideo, readVideoInfo, extractFrames, sampleAnalysis } from './video.js';
 
 let state = loadState();
@@ -236,13 +238,54 @@ function renderProject() {
 
 const plansFor = (key) => (key[0] === 't' ? GUIDES[key]?.steps : PLANS[Number(key.slice(1))]) || [];
 
+
+/* ---------- 3D animation player (WebGL) ---------- */
+
+function playerMarkup(f, i) {
+  const still = isStill(f.clip);
+  const alt = tr('Drawing for step {i}: {title}', { i: i + 1, title: f.title });
+  return `<div class="sp-view player-wrap">
+    <div class="player" data-clip="${f.clip}" ${still ? 'data-still="1"' : ''}>
+      <canvas tabindex="0" role="img" aria-label="${esc(tr('3D model of this step. Drag to turn it, or use the arrow keys.'))}"></canvas>
+      <div class="pl-bar">
+        ${still ? '' : `<button type="button" class="pl-btn" data-pl="play" aria-label="${tr('Play')}">▶</button>
+        <button type="button" class="pl-btn" data-pl="replay" aria-label="${tr('Replay')}">⏮</button>
+        <input class="pl-slider" type="range" min="0" max="1000" value="0" aria-label="${tr('Animation progress')}">
+        <button type="button" class="pl-btn txt" data-pl="slow" aria-pressed="false">${tr('Slow')}</button>`}
+        <button type="button" class="pl-btn txt" data-pl="view">${tr('Reset view')}</button>
+      </div>
+      <p class="pl-hint">${tr('Drag to turn the model')}</p>
+    </div>
+    <div class="sp-fallback" hidden>${drawing(f.shapes, alt)}</div>
+  </div>`;
+}
+
+const mounted = new WeakMap();
+function mountPlayers(root = document) {
+  for (const box of root.querySelectorAll('.player:not([data-mounted])')) {
+    box.dataset.mounted = '1';
+    let handle = null;
+    try { handle = mountPlayer(box, box.dataset.clip, { autoplay: !box.dataset.still && !matchMedia('(prefers-reduced-motion: reduce)').matches }); } catch { handle = null; }
+    if (handle) mounted.set(box, handle);
+    else { // no WebGL: show the flat drawing instead
+      box.hidden = true;
+      const fb = box.parentElement.querySelector('.sp-fallback');
+      if (fb) fb.hidden = false;
+    }
+  }
+}
+// players are created whenever a page (or a stepper) is drawn, and released when it disappears
+new MutationObserver(() => {
+  mountPlayers(main);
+}).observe(main, { childList: true, subtree: true });
+
 function stepperMarkup(key) {
   const frames = plansFor(key);
   if (!frames.length) return '';
   const i = Math.max(0, Math.min(ui.plan[key] ?? 0, frames.length - 1));
   const f = frames[i];
   return `<div class="stepper" data-key="${key}">
-    <div class="sp-view">${drawing(f.shapes, tr('Drawing for step {i}: {title}', { i: i + 1, title: f.title }))}</div>
+    ${f.clip ? playerMarkup(f, i) : `<div class="sp-view">${drawing(f.shapes, tr('Drawing for step {i}: {title}', { i: i + 1, title: f.title }))}</div>`}
     <div class="sp-body">
       <p class="eyebrow">${tr('Step {i} of {n}', { i: i + 1, n: frames.length })}</p>
       <h3 class="h4">${esc(f.title)}</h3>
@@ -297,6 +340,7 @@ function moveStepper(btn) {
   const cur = ui.plan[key] ?? 0;
   const act = btn.dataset.sp;
   ui.plan[key] = act === 'prev' ? Math.max(0, cur - 1) : act === 'next' ? Math.min(n - 1, cur + 1) : Number(btn.dataset.i);
+  box.querySelectorAll('.player').forEach((p) => mounted.get(p)?.destroy());
   box.outerHTML = stepperMarkup(key);
   const again = main.querySelector(`.stepper[data-key="${key}"]`);
   const target = act === 'go' ? again.querySelector(`.thumb[data-i="${ui.plan[key]}"]`) : again.querySelector(`[data-sp="${act}"]:not([disabled])`) || again.querySelector('.btn-primary');
