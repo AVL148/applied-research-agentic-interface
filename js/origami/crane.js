@@ -1,5 +1,6 @@
 // The crane as a list of fold steps. All coordinates are in the paper frame of the START of each step
 // (square of 160, centre at the origin). See engine.js for how a step moves the paper.
+import { fanPose, fanCornerEnd } from './fan.js';
 import { SIZE, buildSequence, squarePaper, side, centroid, lineIntersect } from './engine.js';
 
 const H = SIZE / 2;
@@ -18,7 +19,7 @@ const KC = [-KB[0], KB[1]];
 const yH = KB[1];
 const top = (f, h) => h.isTop(f);
 
-function frontPetal(tag) {
+export function frontPetal(tag) {
   const mine = (f) => (f.tags || []).includes('layer' + tag);
   const is = (f, k) => (f.tags || []).includes(k + tag);
   const flap = (f) => is(f, 'kL') || is(f, 'kR');
@@ -114,16 +115,13 @@ export const STEPS = [
     creases: [{ kind: 'valley', a: [0, -H], b: [0, H] }, { kind: 'valley', a: [-H, 0], b: [H, 0] }],
   },
   {
-    id: 'foldV', title: 'Fold the paper in half',
-    moves: [{ sel: (f) => side([0, -H], [0, H], ...xy(f)) > 0, chain: [{ p: [0, -H], q: [0, H], angle: PI, t: [0.05, 0.95] }] }],
-    creases: [{ kind: 'valley', a: [0, -H], b: [0, H] }],
+    id: 'collapse', title: 'Collapse the square into the base shape', fixed: false, custom: fanPose,
+    spin: -PI / 2 - Math.atan2(fanCornerEnd(H)[1], fanCornerEnd(H)[0]), globalFrom: 0.72, settleT: 0.975,
+    creases: [
+      { kind: 'valley', a: [0, -H], b: [0, H] }, { kind: 'valley', a: [-H, 0], b: [H, 0] },
+      { kind: 'mountain', a: [-H, -H], b: [H, H] }, { kind: 'mountain', a: [-H, H], b: [H, -H] },
+    ], creaseUntil: 0.08,
   },
-  {
-    id: 'foldH', title: 'Fold in half the other way',
-    moves: [{ sel: (f) => side([-H, 0], [H, 0], ...xy(f)) > 0, chain: [{ p: [-H, 0], q: [H, 0], angle: PI, t: [0.05, 0.95] }] }],
-    creases: [{ kind: 'valley', a: [-H, 0], b: [H, 0] }],
-  },
-  { id: 'turn', title: 'Turn the square onto its corner', spin: -PI / 4, globalFrom: 0, fixed: true },
   ...frontPetal('F'),
   { id: 'flipBird', title: 'Turn the model over', flip: true, fixed: true },
   ...frontPetal('B'),

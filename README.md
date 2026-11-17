@@ -53,6 +53,8 @@ js/data.js          project, steps (with video segments) and techniques
 js/diagrams.js      drawing library for fold diagrams (SVG)
 js/origami/engine.js   folding engine: split faces, hinge chains, layer ordering
 js/origami/crane.js    the crane steps as fold operations
+js/origami/fan.js      rigid collapse of the creased square into the base shape
+js/origami/finished.js the finished crane as a small hand-built model (goal picture)
 js/origami/clips.js    clips per step (segments, camera) used by the guides
 js/origami/gl.js       small WebGL renderer (two-sided paper, crease lines)
 js/origami/player.js   player: controls, orbit, fallback
@@ -74,7 +76,7 @@ tests/              node:test
 | --- | --- |
 | Navigation, progress, reflection, storage, techniques | Really works, locally |
 | Step-by-step plans with drawings | Drawn in code; the later steps (neck, head, wings) are schematic |
-| Animated 3D folding | Real rigid folding for the creases, base shape, kite, petal, bird base; the collapse is shown as folding in half twice (same result), the reverse folds, head and wings are rigid approximations with small gaps, and the final crane is stylised |
+| Animated 3D folding | Real rigid folding for the creases, the collapse into the base shape (solved numerically, with one short stretch where it hops between two rigid paths), kite, petal and bird base; the reverse folds, head and wings are rigid approximations with small gaps; the finished crane is a hand-built model, not a folded one |
 | Uploading, storing and playing video, jumping to the fixed segment | Really works, locally |
 | Coach and video analysis with Claude | Works once the server has a valid `ANTHROPIC_API_KEY`; tested with a mock Claude, not yet with a real key |
 | Image analysis of your own folded model | Not built yet |

@@ -1,6 +1,7 @@
 // Which fold steps are played for which drawing. A clip = a list of segments of fold steps, or one still pose.
 import { SIZE, buildSequence, squarePaper, side, centroid } from './engine.js';
-import { buildCrane } from './crane.js';
+import { buildCrane, STEPS, frontPetal } from './crane.js';
+import { finishedCrane } from './finished.js';
 
 const H = SIZE / 2;
 const PI = Math.PI;
@@ -8,6 +9,7 @@ const xy = (f) => centroid(f).slice(0, 2);
 
 let crane = null;
 let basic = null;
+let kites = null;
 
 /** Two small demonstration folds on a fresh square: a valley fold and a mountain fold. */
 function buildBasic() {
@@ -25,10 +27,20 @@ function buildBasic() {
   ]));
 }
 
+/** the base shape with the kite fold on the front, turned over, then the kite fold on the back */
+function buildKites() {
+  const upTo = STEPS.findIndex((x) => x.id === 'collapse') + 1;
+  const all = buildSequence([...STEPS.slice(0, upTo), frontPetal('F')[0], { id: 'flipBird', title: 'Turn the model over', flip: true, fixed: true }, frontPetal('B')[0]]);
+  return Object.fromEntries(all.slice(upTo).map((o) => [`k2-${o.id}`, o]));
+}
+
 export function getOps() {
   crane = crane || Object.fromEntries(buildCrane().map((o) => [o.id, o]));
   basic = basic || Object.fromEntries(buildBasic().map((o) => [o.id, o]));
-  return { ...crane, ...basic };
+  kites = kites || buildKites();
+  const done = finishedCrane();
+  const finished = { finished: { id: 'finished', title: 'The finished crane', creases: [], spec: {}, free: true, start: done, pose: () => done, end: { faces: done, flat: false }, endRaw: done } };
+  return { ...crane, ...basic, ...kites, ...finished };
 }
 
 const seg = (op, from = 0, to = 1, dur) => ({ op, from, to, dur });
@@ -39,13 +51,14 @@ const SIDE = { az: 0.55, el: 0.75 };
 export const CLIPS = {
   // project plan
   'p1-paper': { ...still('diagonals', 0), cam: V },
-  'p1-goal': { ...still('wings', 1), cam: { az: 0.6, el: 0.62 }, target: [0, 20, 0] },
+  'p1-goal': { ...still('finished', 1), cam: { az: 0.55, el: 0.33, dist: 330 }, target: [0, 6, 8] },
   'p2-diagonals': { segs: [seg('diagonals')], cam: V },
   'p2-centre': { segs: [seg('flip'), seg('midlines')], cam: V },
   'p2-result': { ...still('midlines', 1), cam: V },
-  'p3-collapse': { segs: [seg('foldV'), seg('foldH'), seg('turn', 0, 1, 1.4)], cam: V },
-  'p3-base': { ...still('turn', 1), cam: { az: 0.35, el: 0.95 } },
+  'p3-collapse': { segs: [seg('collapse', 0, 1, 4.2)], cam: { az: 0.25, el: 1.0, dist: 440 } },
+  'p3-base': { ...still('collapse', 1), cam: { az: 0.35, el: 0.95 } },
   'p3-kite': { segs: [seg('kiteF')], cam: V },
+  'p3-kite-back': { segs: [seg('k2-flipBird', 0, 1, 1.5), seg('k2-kiteB', 0, 1, 2.2)], cam: { az: 0.2, el: 1.0 } },
   'p3-kite-done': { ...still('kiteF', 1), cam: V },
   'p4-top': { segs: [seg('topF', 0, 1, 2.2), seg('unkiteF', 0, 1, 1.6)], cam: V },
   'p4-petal': { segs: [seg('petalF', 0, 1, 3)], cam: { az: 0.35, el: 0.85 }, target: [0, 20, 0] },
@@ -63,7 +76,7 @@ export const CLIPS = {
   'tq-mountain': { segs: [seg('mountain', 0, 1, 2.6)], cam: { az: 0.1, el: 0.8 } },
   'tq-mountain-start': { ...still('mountain', 0), cam: V },
   'tq-mountain-done': { ...still('mountain', 1), cam: { az: 0.1, el: 0.8 } },
-  'tq-prelim': { segs: [seg('diagonals', 0, 1, 2.2), seg('flip', 0, 1, 1.2), seg('midlines', 0, 1, 2.2), seg('foldV', 0, 1, 1.8), seg('foldH', 0, 1, 1.8), seg('turn', 0, 1, 1.2)], cam: V },
+  'tq-prelim': { segs: [seg('diagonals', 0, 1, 2.2), seg('flip', 0, 1, 1.2), seg('midlines', 0, 1, 2.2), seg('collapse', 0, 1, 4.2)], cam: V },
   'tq-bird': { segs: [seg('kiteF', 0, 1, 1.8), seg('topF', 0, 1, 1.6), seg('unkiteF', 0, 1, 1.2), seg('petalF', 0, 1, 2.6), seg('flipBird', 0, 1, 1.2), seg('kiteB', 0, 1, 1.4), seg('topB', 0, 1, 1.2), seg('unkiteB', 0, 1, 1), seg('petalB', 0, 1, 2.4)], cam: { az: 0.3, el: 0.9 }, target: [0, 20, 0] },
   'tq-petal': { segs: [seg('topF', 0, 1, 1.6), seg('unkiteF', 0, 1, 1.2), seg('petalF', 0, 1, 3)], cam: { az: 0.3, el: 0.9 }, target: [0, 20, 0] },
   'tq-reverse': { segs: [seg('legs', 0, 0.72, 4)], cam: SIDE, target: [0, 20, 0] },

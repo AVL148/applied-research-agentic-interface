@@ -607,8 +607,7 @@ export const FR = {
   "Reset view": "Réinitialiser la vue",
   "Drag to turn the model": "Faites glisser pour tourner le modèle",
   "3D model of this step. Drag to turn it, or use the arrow keys.": "Modèle 3D de cette étape. Faites-le glisser pour le tourner ou utilisez les touches fléchées.",
-  "Fold the paper in half along the centre lines, one way and then the other, so all four corners come together. Then turn the little square onto its corner.": "Pliez le papier en deux le long des lignes médianes, d'abord dans un sens puis dans l'autre, pour que les quatre coins se rejoignent. Tournez ensuite le petit carré sur sa pointe.",
-  "Fold the paper in half along the centre lines, one way and then the other, so all four corners meet. Then turn the square onto its corner.": "Pliez le papier en deux le long des lignes médianes, d'abord dans un sens puis dans l'autre, pour que les quatre coins se rejoignent. Tournez ensuite le carré sur sa pointe.",
+  "Lift two opposite corners and push the centre down. The centre lines fold inwards as valley folds, the diagonals as mountain folds, until all four corners meet and the paper lies flat as a square with four flaps.": "Soulevez deux coins opposés et poussez le centre vers le bas. Les lignes médianes se plient vers l'intérieur en plis vallée, les diagonales en plis montagne, jusqu'à ce que les quatre coins se rejoignent et que le papier soit plat, en un carré à quatre rabats.",
   "Pre-crease: fold the top point down and unfold, then unfold the side folds too.": "Pré-pli : rabattez la pointe du haut vers le bas puis dépliez, dépliez ensuite aussi les plis latéraux.",
   "Pull the two lower points apart: they become the neck and the tail.": "Écartez les deux pointes du bas : elles deviennent le cou et la queue.",
 };

@@ -268,12 +268,20 @@ export function buildOp(state, spec) {
     if (spec.flip) { const s = smooth(t); const a = Math.PI * s; const c = Math.cos(a), si = Math.sin(a); const nx = x * c + z * si; const nz = -x * si + z * c; x = nx; z = nz; }
     if (g.rot) { const s = smooth((t - g.t0) / (1 - g.t0)); const a = g.rot * s; const c = Math.cos(a), si = Math.sin(a); const nx = x * c - y * si; const ny = x * si + y * c; x = nx; y = ny; }
     if (g.shift) { const s = smooth((t - g.t0) / (1 - g.t0)); x += g.shift[0] * s; y += g.shift[1] * s; }
+    if (g.tilt) { // stand the model up: rotate about the x axis through (0, y0, 0)
+      const s = smooth((t - g.tilt.from) / (1 - g.tilt.from)); const a = g.tilt.angle * s; const c = Math.cos(a), si = Math.sin(a);
+      const dy = y - g.tilt.y0; const ny = g.tilt.y0 + dy * c - z * si; const nz = dy * si + z * c; y = ny; z = nz + (g.tilt.lift || 0) * s;
+    }
     return [x, y, z];
   };
   const op = {
     id: spec.id, title: spec.title, kind: spec.kind || 'fold', creases: spec.creases || [],
-    start: faces, moved, spec, g: null,
+    start: faces, moved, spec, g: spec.tilt ? { tilt: spec.tilt } : null,
     pose(t, scale = 1) {
+      if (spec.custom) {
+        const Ps = spec.custom(t, faces);
+        return faces.map((f, i) => ({ ...f, P: Ps[i].map((p) => globalAt(t, p, op.g)) }));
+      }
       return faces.map((f) => {
         const ch = chains.get(f.id) || [];
         const P = f.P.map((p0) => {

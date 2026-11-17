@@ -607,8 +607,7 @@ export const NL = {
   "Reset view": "Beeld herstellen",
   "Drag to turn the model": "Sleep om het model te draaien",
   "3D model of this step. Drag to turn it, or use the arrow keys.": "3D-model van deze stap. Sleep om het te draaien of gebruik de pijltjestoetsen.",
-  "Fold the paper in half along the centre lines, one way and then the other, so all four corners come together. Then turn the little square onto its corner.": "Vouw het papier langs de middenlijnen dubbel, eerst de ene kant en dan de andere, zodat alle vier de hoeken samenkomen. Draai het kleine vierkant daarna op zijn hoek.",
-  "Fold the paper in half along the centre lines, one way and then the other, so all four corners meet. Then turn the square onto its corner.": "Vouw het papier langs de middenlijnen dubbel, eerst de ene kant en dan de andere, zodat alle vier de hoeken samenkomen. Draai het vierkant daarna op zijn hoek.",
+  "Lift two opposite corners and push the centre down. The centre lines fold inwards as valley folds, the diagonals as mountain folds, until all four corners meet and the paper lies flat as a square with four flaps.": "Til twee tegenover elkaar liggende hoeken op en duw het midden naar beneden. De middenlijnen vouwen naar binnen als valley folds, de diagonalen als mountain folds, tot alle vier de hoeken samenkomen en het papier plat ligt als een vierkant met vier flappen.",
   "Pre-crease: fold the top point down and unfold, then unfold the side folds too.": "Voorvouw: vouw de bovenste punt naar beneden en vouw weer open, vouw daarna ook de zijvouwen open.",
   "Pull the two lower points apart: they become the neck and the tail.": "Trek de twee onderste punten uit elkaar: ze worden de hals en de staart.",
 };

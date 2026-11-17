@@ -26,7 +26,7 @@ export function mountPlayer(box, clipId, { autoplay = true } = {}) {
   let r;
   try { r = createRenderer(canvas); } catch { return null; }
   const cam = r.cam;
-  const home = { az: clip.cam?.az ?? 0, el: clip.cam?.el ?? 1.05, dist: clip.dist ?? 350 };
+  const home = { az: clip.cam?.az ?? 0, el: clip.cam?.el ?? 1.05, dist: clip.cam?.dist ?? clip.dist ?? 350 };
   Object.assign(cam, home);
   cam.target = clip.target || [0, 0, 0];
 
@@ -39,7 +39,7 @@ export function mountPlayer(box, clipId, { autoplay = true } = {}) {
   const draw = () => {
     const res = clipPose(poseOp, ops, clip, animated ? state.p : 1);
     const extras = {};
-    if (res.op?.creases?.length && res.k < 0.85) {
+    if (res.op?.creases?.length && res.k < (res.op.spec?.creaseUntil ?? 0.85)) {
       const valley = [], mountain = [];
       for (const c of res.op.creases) dashes(c.a, c.b, 0.9, c.kind === 'mountain' ? mountain : valley, c.kind === 'mountain' ? 9 : 7, 4.5);
       extras.creases = { valley, mountain };

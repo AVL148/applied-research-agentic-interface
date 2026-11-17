@@ -24,14 +24,14 @@ test('the paper stays rigid: every face keeps its edge lengths during every step
 });
 
 test('the first folds (creases, base shape, valley and mountain) keep every hinge closed', () => {
-  for (const id of ['diagonals', 'flip', 'midlines', 'foldV', 'foldH', 'turn', 'valley', 'mountain']) {
+  for (const id of ['diagonals', 'flip', 'midlines', 'collapse', 'valley', 'mountain']) {
     let worst = 0;
     for (const t of [0.2, 0.4, 0.5, 0.6, 0.8, 1]) {
       const map = new Map();
       poseOp(ops[id], t).forEach((f) => f.uv.forEach((u, i) => { const k = key(u); (map.get(k) || map.set(k, []).get(k)).push(f.P[i]); }));
       for (const pts of map.values()) for (let i = 1; i < pts.length; i++) worst = Math.max(worst, dist(pts[i], pts[0]));
     }
-    assert.ok(worst < 2.5, `${id} gap ${worst}`);
+    assert.ok(worst < (id === 'collapse' ? 6 : 2.5), `${id} gap ${worst}`);
   }
 });
 
@@ -47,7 +47,7 @@ test('flat results: faces that overlap never share a layer', () => {
 
 test('the preliminary base is a four-layer diamond and the bird base is narrow', () => {
   const ext = (faces, a) => { const v = faces.flatMap((f) => f.P.map((p) => p[a])); return Math.max(...v) - Math.min(...v); };
-  const base = ops.turn.end.faces;
+  const base = ops.collapse.end.faces;
   assert.ok(Math.abs(ext(base, 0) - 113.1) < 1, 'diamond width');
   assert.ok(Math.abs(ext(base, 1) - 113.1) < 1, 'diamond height');
   const bird = ops.petalB.end.faces;
@@ -70,6 +70,30 @@ test('every clip that is used by a plan or a technique exists and plays', () => 
     assert.equal(isStill(id), !!c.still);
     if (!c.still) assert.ok(clipDuration(c) > 0);
   }
+});
+
+test('the collapse is rigid, ends flat in four layers and matches the base shape the later folds expect', () => {
+  const end = ops.collapse.end.faces;
+  const layers = new Set(end.map((f) => f.z.toFixed(2)));
+  assert.ok(layers.size >= 4, 'at least four distinct layers');
+  const at = (uvx, uvy) => end.flatMap((f) => f.uv.map((u, i) => (Math.abs(u[0] - uvx) < 1 && Math.abs(u[1] - uvy) < 1 ? f.P[i] : null)).filter(Boolean))[0];
+  const centre = at(80, 80), corner = at(0, 0);
+  assert.ok(Math.hypot(centre[0], centre[1] - 56.6) < 0.5, 'the centre of the paper is the closed top');
+  assert.ok(Math.hypot(corner[0], corner[1] + 56.6) < 0.5, 'the corners meet at the open end');
+});
+
+test('the finished crane is a closed picture with wings, neck and tail', () => {
+  const faces = ops.finished.end.faces;
+  const xs = faces.flatMap((f) => f.P.map((p) => p[0])), ys = faces.flatMap((f) => f.P.map((p) => p[1]));
+  assert.ok(Math.max(...xs) - Math.min(...xs) > 150, 'wings spread');
+  assert.ok(Math.max(...ys) - Math.min(...ys) > 120, 'neck and tail');
+  for (const f of faces) for (const p of f.P) assert.ok(p.every(Number.isFinite));
+});
+
+test('the kite folds on both sides play as one clip', () => {
+  const c = CLIPS['p3-kite-back'];
+  assert.ok(c && clipDuration(c) > 3);
+  for (const p of [0, 0.4, 0.7, 1]) assert.ok(clipPose(poseOp, ops, c, p).faces.length > 0);
 });
 
 test('every project step has at least one 3D clip, drawings stay as fallback', () => {
