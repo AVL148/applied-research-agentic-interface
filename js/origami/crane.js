@@ -61,38 +61,70 @@ export function frontPetal(tag) {
   ];
 }
 
-/* ---------- neck, tail, head and wings (free 3D poses, no longer flat) ---------- */
-const BETA = 0.62; // how far the two legs swing apart
-const YC = -22; // height of the reverse fold crease
-const YHEAD = B[1] + 13;
+/* ---------- narrow legs, neck and tail, head and wings ---------- */
 const tagged = (f, k) => (f.tags || []).includes(k);
-const below = (f) => centroid(f)[1] < yH;
+const zc = (f) => f.P.reduce((a, p) => a + p[2], 0) / f.P.length;
+const DW = (Math.abs(KB[0]) * (yH - B[1])) / ((yH - B[1]) + Math.hypot(KB[0], yH - B[1])); // where the lower edge lands on the centre line
+const DL = [-DW, yH], DR = [DW, yH];
+const REV = { s: 0.85, deg: -20 }; // where and how steeply the neck and tail are folded up
+const HEAD_LEN = 12;
 
-/** crease through (0,y) at angle phi; oriented so the tip (below it) is on its left */
-function tipCrease(y, phi) {
-  const c = [0, y];
-  const d = [Math.cos(phi), Math.sin(phi)];
-  const p = [c[0] + d[0] * 70, c[1] + d[1] * 70];
-  const q = [c[0] - d[0] * 70, c[1] - d[1] * 70];
-  return side(p, q, 0, -80) > 0 ? [p, q] : [q, p];
-}
-const leg = (tag, sign) => {
-  const own = (f) => tagged(f, 'second' + tag) && below(f);
-  const c1 = tipCrease(YC, -sign * BETA);
-  const c2 = tipCrease(YHEAD, -sign * BETA * 0 + 0);
-  const ax = (c, z) => ({ p3: [c[0][0], c[0][1], z], q3: [c[1][0], c[1][1], z] });
+/** fold the lower edges of the top layers to the centre line (both sides) */
+function narrow(id) {
+  const low = (f) => zc(f) > 0.01 && centroid(f)[1] < yH - 0.5;
   return {
-    own, c1, c2,
-    splits: [[c1[0], c1[1], own], [c2[0], c2[1], (f) => own(f) && side(c1[0], c1[1], ...xy(f)) > 0]],
+    id, title: 'Fold the lower edges to the centre line', fixed: true,
+    splits: [[[-H, yH], [H, yH]], [B, DL, low], [DR, B, low]],
     moves: [
-      { sel: own, chain: [{ p3: [0, yH, 0], q3: [0, yH, 1], angle: sign * BETA, t: [0.0, 0.3] }] },
-      { sel: (f) => own(f) && side(c1[0], c1[1], ...xy(f)) > 0, chain: [{ ...ax(c1, 1.2), angle: PI * 0.94, t: [0.3, 0.7] }] },
-      ...(sign < 0 ? [{ sel: (f) => own(f) && side(c1[0], c1[1], ...xy(f)) > 0 && side(c2[0], c2[1], ...xy(f)) > 0, chain: [{ ...ax(c2, 1.2), angle: PI * 0.7, t: [0.72, 1] }] }] : []),
+      { sel: (f) => low(f) && side(B, DL, ...xy(f)) > 0, chain: [{ p: B, q: DL, angle: PI, t: [0.08, 0.92] }] },
+      { sel: (f) => low(f) && side(DR, B, ...xy(f)) > 0, chain: [{ p: DR, q: B, angle: PI, t: [0.08, 0.92] }] },
     ],
+    creases: [{ kind: 'valley', a: B, b: DL }, { kind: 'valley', a: DR, b: B }],
   };
-};
-const neck = leg('F', -1);
-const tail = leg('B', 1);
+}
+
+/** crease axis through point P with direction angle a, oriented so that `tip` lies on its left */
+function axisFor(P, a, tip) {
+  const e = [Math.cos(a), Math.sin(a)];
+  const p = [P[0] - e[0] * 90, P[1] - e[1] * 90], q = [P[0] + e[0] * 90, P[1] + e[1] * 90];
+  return side(p, q, tip[0], tip[1]) > 0 ? [p, q] : [q, p];
+}
+const edgeAt = (sgn, s) => [sgn * DW * s, B[1] + (yH - B[1]) * s];
+const legFace = (sgn) => (f) => sgn * centroid(f)[0] > 0 && centroid(f)[1] < yH;
+
+/** reverse folds: the right leg becomes the neck, the left leg the tail */
+function legs() {
+  const parts = [[1, 'neck', [0, 0.5]], [-1, 'tail', [0.45, 0.95]]].map(([sgn, mark, t]) => {
+    const P = edgeAt(sgn, REV.s);
+    const a = sgn > 0 ? (REV.deg * PI) / 180 : PI - (REV.deg * PI) / 180;
+    const [p, q] = axisFor(P, a, B);
+    const tipSide = (f) => legFace(sgn)(f) && side(p, q, ...xy(f)) > 0;
+    return { sgn, mark, t, p, q, tipSide, leg: legFace(sgn), P };
+  });
+  return {
+    id: 'legs', title: 'Reverse folds: neck and tail', fixed: true, flat: false,
+    splits: parts.map((x) => [x.p, x.q, x.leg]),
+    moves: parts.map((x) => ({ mark: x.mark, sel: x.tipSide, chain: [{ p3: [x.p[0], x.p[1], 0], q3: [x.q[0], x.q[1], 0], angle: PI * 0.98, t: x.t }] })),
+  };
+}
+
+/** the small reverse fold at the tip of the neck makes the head */
+function head(state) {
+  const neck = state.faces.filter((f) => tagged(f, 'neck'));
+  const P = edgeAt(1, REV.s);
+  let tip = P, far = 0;
+  for (const f of neck) for (const v of f.P) { const d = Math.hypot(v[0] - P[0], v[1] - P[1]); if (d > far) { far = d; tip = v; } }
+  const dir = [(tip[0] - P[0]) / far, (tip[1] - P[1]) / far];
+  const Hc = [tip[0] - dir[0] * HEAD_LEN, tip[1] - dir[1] * HEAD_LEN];
+  const theta = Math.atan2(dir[1], dir[0]);
+  const [p, q] = axisFor(Hc, (theta + (6 * PI) / 180) / 2, tip);
+  const mine = (f) => tagged(f, 'neck');
+  return {
+    id: 'head', title: 'Fold the tip of the neck over (head)', fixed: true, flat: false,
+    splits: [[p, q, mine]],
+    moves: [{ mark: 'head', sel: (f) => mine(f) && side(p, q, ...xy(f)) > 0, chain: [{ p3: [p[0], p[1], 0], q3: [q[0], q[1], 0], angle: PI * 0.97, t: [0.05, 0.95] }] }],
+  };
+}
 
 export const STEPS = [
   {
@@ -125,11 +157,11 @@ export const STEPS = [
   ...frontPetal('F'),
   { id: 'flipBird', title: 'Turn the model over', flip: true, fixed: true },
   ...frontPetal('B'),
-  {
-    id: 'legs', title: 'Reverse folds: neck and tail', fixed: true, flat: false,
-    splits: [[KB, KC, (f) => tagged(f, 'secondF') || tagged(f, 'secondB')], ...neck.splits, ...tail.splits],
-    moves: [...neck.moves, ...tail.moves],
-  },
+  narrow('narrowB'),
+  { id: 'flipN', title: 'Turn the model over', flip: true, fixed: true },
+  narrow('narrowF'),
+  legs(),
+  head,
   {
     id: 'wings', title: 'Pull the wings apart', fixed: true, flat: false,
     moves: [

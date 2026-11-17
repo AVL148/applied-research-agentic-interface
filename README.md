@@ -76,7 +76,7 @@ tests/              node:test
 | --- | --- |
 | Navigation, progress, reflection, storage, techniques | Really works, locally |
 | Step-by-step plans with drawings | Drawn in code; the later steps (neck, head, wings) are schematic |
-| Animated 3D folding | Real rigid folding for the creases, the collapse into the base shape (solved numerically, with one short stretch where it hops between two rigid paths), kite, petal and bird base; the reverse folds, head and wings are rigid approximations with small gaps; the finished crane is a hand-built model, not a folded one |
+| Animated 3D folding | Real rigid folding for the creases, the collapse into the base shape (solved numerically, with one short stretch where it hops between two rigid paths), kite, petal, bird base, narrowing the legs, the reverse folds (neck on the right, tail on the left) and the head; the wings are a rigid approximation; the finished crane is a hand-built model, not a folded one |
 | Uploading, storing and playing video, jumping to the fixed segment | Really works, locally |
 | Coach and video analysis with Claude | Works once the server has a valid `ANTHROPIC_API_KEY`; tested with a mock Claude, not yet with a real key |
 | Image analysis of your own folded model | Not built yet |

@@ -90,6 +90,19 @@ test('the finished crane is a closed picture with wings, neck and tail', () => {
   for (const f of faces) for (const p of f.P) assert.ok(p.every(Number.isFinite));
 });
 
+test('the legs are narrowed, then folded up and outwards into a neck on the right and a tail on the left', () => {
+  const lowWidth = (faces) => { const v = faces.filter((f) => f.P.reduce((a, p) => a + p[1], 0) / f.P.length < 0).flatMap((f) => f.P).map((p) => p[0]); return Math.max(...v) - Math.min(...v); };
+  assert.ok(lowWidth(ops.petalB.end.faces) > 60, 'bird base is wide at the legs');
+  assert.ok(lowWidth(ops.narrowF.end.faces) < 40, 'legs are narrow after both narrowing folds');
+  const end = ops.legs.end.faces;
+  const tagged = (f, k) => (f.tags || []).includes(k);
+  const tip = (k) => end.filter((f) => tagged(f, k)).flatMap((f) => f.P).reduce((a, p) => (p[1] > a[1] ? p : a));
+  assert.ok(tip('neck')[0] > 30 && tip('neck')[1] > 30, 'neck points up and to the right');
+  assert.ok(tip('tail')[0] < -30 && tip('tail')[1] > 30, 'tail points up and to the left');
+  const h = ops.head.end.faces.filter((f) => tagged(f, 'head')).flatMap((f) => f.P);
+  assert.ok(h.length > 0 && Math.max(...h.map((p) => p[0])) > tip('neck')[0] - 5, 'the head bends outwards');
+});
+
 test('the kite folds on both sides play as one clip', () => {
   const c = CLIPS['p3-kite-back'];
   assert.ok(c && clipDuration(c) > 3);

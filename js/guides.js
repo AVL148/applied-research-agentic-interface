@@ -357,14 +357,14 @@ export const PLANS = {
     { title: t('Bird base'), clip: 'p4-bird', text: t('Repeat on the back.'), shapes: FR.birdBase() },
   ],
   5: [
-    { title: t('Make it narrow'), text: t('Fold the lower edges to the centre line.'), shapes: FR.narrowLines() },
-    { title: t('Narrow shape'), text: t('Turn over and repeat.'), shapes: FR.narrow() },
-    { title: t('Reverse folds'), clip: 'p5-legs', text: t('Pull the two lower points apart: they become the neck and the tail.'), shapes: SHAPES.legsLines() },
-    { title: t('Neck and tail'), clip: 'p5-reverse', text: t('Push both points inwards: one becomes the neck, the other the tail.'), shapes: SHAPES.neckTail() },
+    { title: t('Make it narrow'), clip: 'p5-narrow', text: t('Fold the lower edges to the centre line.'), shapes: FR.narrowLines() },
+    { title: t('Narrow shape'), clip: 'p5-narrow2', text: t('Turn over and repeat.'), shapes: FR.narrow() },
+    { title: t('Reverse folds'), clip: 'p5-legs', text: t('Fold the right-hand lower point up and outwards with a reverse fold. This becomes the neck.'), shapes: SHAPES.legsLines() },
+    { title: t('Neck and tail'), clip: 'p5-reverse', text: t('Fold the left-hand lower point up and outwards in the same way. This becomes the tail.'), shapes: SHAPES.neckTail() },
   ],
   6: [
     { title: t('Head'), clip: 'p6-head', text: t('Fold the tip of the neck over with a small reverse fold.'), shapes: SHAPES.head() },
-    { title: t('Wings apart'), clip: 'p6-wings', text: t('Slowly pull the wings down until they are horizontal and check that left and right are the same.'), shapes: SHAPES.wingsOpen() },
+    { title: t('Wings apart'), clip: 'p6-wings', text: t('Pull the two wings apart: one towards you and one away from you, until they are horizontal. Check that both sides are the same.'), shapes: SHAPES.wingsOpen() },
     { title: t('Inflate it'), clip: 'p1-goal', text: t('Gently pull the wings outwards and press the belly out.'), shapes: SHAPES.crane() },
   ],
   7: [

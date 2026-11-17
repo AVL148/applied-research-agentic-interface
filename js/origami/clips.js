@@ -65,10 +65,12 @@ export const CLIPS = {
   'p4-petal-done': { ...still('petalF', 1), cam: { az: 0.45, el: 0.9 }, target: [0, 20, 0] },
   'p4-bird': { segs: [seg('flipBird', 0, 1, 1.4), seg('kiteB', 0, 1, 1.6), seg('topB', 0, 1, 1.4), seg('unkiteB', 0, 1, 1.2), seg('petalB', 0, 1, 2.6)], cam: { az: 0.3, el: 0.9 }, target: [0, 20, 0] },
   'p4-bird-done': { ...still('petalB', 1), cam: { az: 0.45, el: 0.9 }, target: [0, 20, 0] },
-  'p5-legs': { segs: [seg('legs', 0, 0.32, 2.2)], cam: { az: 0.2, el: 1.0 }, target: [0, 20, 0] },
-  'p5-reverse': { segs: [seg('legs', 0.3, 0.72, 3)], cam: SIDE, target: [0, 20, 0] },
-  'p6-head': { segs: [seg('legs', 0.7, 1, 2.2)], cam: SIDE, target: [0, 20, 0] },
-  'p6-wings': { segs: [seg('wings', 0, 1, 3)], cam: { az: 0.7, el: 0.7 }, target: [0, 20, 0] },
+  'p5-narrow': { segs: [seg('narrowB', 0, 1, 2.6)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
+  'p5-narrow2': { segs: [seg('flipN', 0, 1, 1.4), seg('narrowF', 0, 1, 2.6)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
+  'p5-legs': { segs: [seg('legs', 0, 0.5, 3)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
+  'p5-reverse': { segs: [seg('legs', 0.45, 1, 3)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
+  'p6-head': { segs: [seg('head', 0, 1, 2.4)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
+  'p6-wings': { segs: [seg('wings', 0, 1, 3.4)], cam: { az: 0.5, el: 0.85 }, target: [0, 30, 0] },
   // techniques
   'tq-valley': { segs: [seg('valley', 0, 1, 2.6)], cam: { az: 0.1, el: 0.8 } },
   'tq-valley-start': { ...still('valley', 0), cam: V },
@@ -79,7 +81,7 @@ export const CLIPS = {
   'tq-prelim': { segs: [seg('diagonals', 0, 1, 2.2), seg('flip', 0, 1, 1.2), seg('midlines', 0, 1, 2.2), seg('collapse', 0, 1, 4.2)], cam: V },
   'tq-bird': { segs: [seg('kiteF', 0, 1, 1.8), seg('topF', 0, 1, 1.6), seg('unkiteF', 0, 1, 1.2), seg('petalF', 0, 1, 2.6), seg('flipBird', 0, 1, 1.2), seg('kiteB', 0, 1, 1.4), seg('topB', 0, 1, 1.2), seg('unkiteB', 0, 1, 1), seg('petalB', 0, 1, 2.4)], cam: { az: 0.3, el: 0.9 }, target: [0, 20, 0] },
   'tq-petal': { segs: [seg('topF', 0, 1, 1.6), seg('unkiteF', 0, 1, 1.2), seg('petalF', 0, 1, 3)], cam: { az: 0.3, el: 0.9 }, target: [0, 20, 0] },
-  'tq-reverse': { segs: [seg('legs', 0, 0.72, 4)], cam: SIDE, target: [0, 20, 0] },
+  'tq-reverse': { segs: [seg('legs', 0, 0.5, 3.4)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
 };
 
 /** total duration in seconds of a clip */
