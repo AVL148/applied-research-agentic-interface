@@ -148,7 +148,7 @@ export const STEPS = [
   },
   {
     id: 'collapse', title: 'Collapse the square into the base shape', fixed: false, custom: fanPose,
-    spin: -PI / 2 - Math.atan2(fanCornerEnd(H)[1], fanCornerEnd(H)[0]), globalFrom: 0.72, settleT: 0.975,
+    fixed: true, settleT: 0.975,
     creases: [
       { kind: 'valley', a: [0, -H], b: [0, H] }, { kind: 'valley', a: [-H, 0], b: [H, 0] },
       { kind: 'mountain', a: [-H, -H], b: [H, H] }, { kind: 'mountain', a: [-H, H], b: [H, -H] },
