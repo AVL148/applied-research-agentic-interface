@@ -15,27 +15,29 @@ function poly(pts, out) {
 
 export function finishedCrane() {
   const faces = [];
-  const T = 4.5; // half thickness of the body
-  // body: a kite seen from the side, with a little thickness
-  const N = [0, 32, 5], U = [0, 0, 22], K = [0, -32, 5], D = [0, 0, -26];
+  const T = 3.2; // half thickness of the body (two fins side by side)
+  // body: two upright fins, closed at the top and bottom edge, seen from the side as a kite
+  const F = [30, 22], K = [-30, 22], U = [0, 52], D = [0, -4];
   for (const s of [-1, 1]) {
-    const q = (p) => [s * T, p[1], p[2]];
-    faces.push(poly([q(N), q(U), q(K), q(D)], [s, 0, 0]));
+    const q = (p) => [s * T, p[0], p[1]];
+    faces.push(poly([q(F), q(U), q(K), q(D)], [s, 0, 0]));
   }
-  faces.push(poly([[T, 32, 5], [0, 0, 22], [-T, 32, 5]], [0, 1, 1]));
-  faces.push(poly([[T, -32, 5], [0, 0, 22], [-T, -32, 5]], [0, -1, 1]));
-  // wings: one big triangle on each side, slightly drooping, plus a small flap at the body
+  faces.push(poly([[T, F[0], F[1]], [0, U[0], U[1]], [-T, F[0], F[1]]], [1, 1, 1]));
+  faces.push(poly([[T, K[0], K[1]], [0, U[0], U[1]], [-T, K[0], K[1]]], [-1, -1, 1]));
+  faces.push(poly([[T, F[0], F[1]], [0, D[0], D[1]], [-T, F[0], F[1]]], [1, 1, -1]));
+  faces.push(poly([[T, K[0], K[1]], [0, D[0], D[1]], [-T, K[0], K[1]]], [-1, -1, -1]));
+  // wings: a kite per side that rises outwards in a V, bent a little along its middle
   for (const s of [-1, 1]) {
-    const root1 = [s * T, 26, 14], root2 = [s * T, -28, 12], tip = [s * 90, -6, 3], low = [s * T, 0, -3];
-    faces.push(poly([root1, root2, tip], [0, 0, 1]));
-    faces.push(poly([root1, tip, low], [0, 0, 1]));
+    const a = [s * T, 34, 16], c = [s * T, -34, 14], low = [s * T, 2, -2], tip = [s * 88, -10, 58];
+    faces.push(poly([a, tip, low], [0, 0, 1]));
+    faces.push(poly([low, tip, c], [0, 0, 1]));
   }
-  // neck with head, tail
+  // neck and tail: thin double sheets that rise from the ends of the body; the head is a small bend
   for (const s of [-1, 1]) {
-    const x = s * 1.2;
-    faces.push(poly([[x, 28, 12], [x, 31, -1], [x, 64, 34]], [s, 0, 0]));
-    faces.push(poly([[x, 64, 34], [x, 56, 27], [x, 78, 29]], [s, 0, 0]));
-    faces.push(poly([[x, -28, 12], [x, -31, -1], [x, -68, 36]], [s, 0, 0]));
+    const x = s * 1.4;
+    faces.push(poly([[x, 26, 4], [x, 36, 30], [x, 64, 66]], [s, 0, 0]));
+    faces.push(poly([[x, 64, 66], [x, 59, 58], [x, 80, 60]], [s, 0, 0]));
+    faces.push(poly([[x, -26, 4], [x, -36, 30], [x, -66, 62]], [s, 0, 0]));
   }
   return faces;
 }

@@ -5,7 +5,7 @@
 // the paper is flat again and the layers are re-ordered from the almost-final pose.
 
 export const SIZE = 160;
-export const LAYER = 0.55; // distance between stacked layers
+export const LAYER = 0.9; // distance between stacked layers
 
 const TAU = Math.PI * 2;
 const v3 = {

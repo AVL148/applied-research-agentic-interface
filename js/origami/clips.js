@@ -45,32 +45,32 @@ export function getOps() {
 
 const seg = (op, from = 0, to = 1, dur) => ({ op, from, to, dur });
 const still = (op, t = 1) => ({ still: { op, t } });
-const V = { az: 0, el: 1.12 };
-const SIDE = { az: 0.55, el: 0.75 };
+const V = { az: 0, el: 1.38 };
+const SIDE = { az: 0.45, el: 0.95 };
 
 export const CLIPS = {
   // project plan
   'p1-paper': { ...still('diagonals', 0), cam: V },
-  'p1-goal': { ...still('finished', 1), cam: { az: 0.55, el: 0.33, dist: 330 }, target: [0, 6, 8] },
+  'p1-goal': { ...still('finished', 1), cam: { az: 0.6, el: 0.42, dist: 250 }, target: [0, 2, 30] },
   'p2-diagonals': { segs: [seg('diagonals')], cam: V },
   'p2-centre': { segs: [seg('flip'), seg('midlines')], cam: V },
   'p2-result': { ...still('midlines', 1), cam: V },
-  'p3-collapse': { segs: [seg('collapse', 0, 1, 4.2)], cam: { az: 0.25, el: 1.0, dist: 440 } },
-  'p3-base': { ...still('collapse', 1), cam: { az: 0.35, el: 0.95 } },
+  'p3-collapse': { segs: [seg('collapse', 0, 1, 4.2)], cam: { az: 0.25, el: 1.3, dist: 440 } },
+  'p3-base': { ...still('collapse', 1), cam: { az: 0.35, el: 1.3 } },
   'p3-kite': { segs: [seg('kiteF')], cam: V },
-  'p3-kite-back': { segs: [seg('k2-flipBird', 0, 1, 1.5), seg('k2-kiteB', 0, 1, 2.2)], cam: { az: 0.2, el: 1.0 } },
+  'p3-kite-back': { segs: [seg('k2-flipBird', 0, 1, 1.5), seg('k2-kiteB', 0, 1, 2.2)], cam: { az: 0.2, el: 1.3 } },
   'p3-kite-done': { ...still('kiteF', 1), cam: V },
   'p4-top': { segs: [seg('topF', 0, 1, 2.2), seg('unkiteF', 0, 1, 1.6)], cam: V },
-  'p4-petal': { segs: [seg('petalF', 0, 1, 3)], cam: { az: 0.35, el: 0.85 }, target: [0, 20, 0] },
-  'p4-petal-done': { ...still('petalF', 1), cam: { az: 0.45, el: 0.9 }, target: [0, 20, 0] },
-  'p4-bird': { segs: [seg('flipBird', 0, 1, 1.4), seg('kiteB', 0, 1, 1.6), seg('topB', 0, 1, 1.4), seg('unkiteB', 0, 1, 1.2), seg('petalB', 0, 1, 2.6)], cam: { az: 0.3, el: 0.9 }, target: [0, 20, 0] },
-  'p4-bird-done': { ...still('petalB', 1), cam: { az: 0.45, el: 0.9 }, target: [0, 20, 0] },
-  'p5-narrow': { segs: [seg('narrowB', 0, 1, 2.6)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
-  'p5-narrow2': { segs: [seg('flipN', 0, 1, 1.4), seg('narrowF', 0, 1, 2.6)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
-  'p5-legs': { segs: [seg('legs', 0, 0.5, 3)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
-  'p5-reverse': { segs: [seg('legs', 0.45, 1, 3)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
-  'p6-head': { segs: [seg('head', 0, 1, 2.4)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
-  'p6-wings': { segs: [seg('wings', 0, 1, 3.4)], cam: { az: 0.5, el: 0.85 }, target: [0, 30, 0] },
+  'p4-petal': { segs: [seg('petalF', 0, 1, 3)], cam: { az: 0.35, el: 1.25 }, target: [0, 20, 0] },
+  'p4-petal-done': { ...still('petalF', 1), cam: { az: 0.45, el: 1.25 }, target: [0, 20, 0] },
+  'p4-bird': { segs: [seg('flipBird', 0, 1, 1.4), seg('kiteB', 0, 1, 1.6), seg('topB', 0, 1, 1.4), seg('unkiteB', 0, 1, 1.2), seg('petalB', 0, 1, 2.6)], cam: { az: 0.3, el: 1.25 }, target: [0, 20, 0] },
+  'p4-bird-done': { ...still('petalB', 1), cam: { az: 0.45, el: 1.25 }, target: [0, 20, 0] },
+  'p5-narrow': { segs: [seg('narrowB', 0, 1, 2.6)], cam: { az: 0, el: 1.4 }, target: [0, 23, 0] },
+  'p5-narrow2': { segs: [seg('flipN', 0, 1, 1.4), seg('narrowF', 0, 1, 2.6)], cam: { az: 0, el: 1.4 }, target: [0, 23, 0] },
+  'p5-legs': { segs: [seg('legs', 0, 0.5, 3)], cam: { az: 0, el: 1.4 }, target: [0, 23, 0] },
+  'p5-reverse': { segs: [seg('legs', 0.45, 1, 3)], cam: { az: 0, el: 1.4 }, target: [0, 23, 0] },
+  'p6-head': { segs: [seg('head', 0, 1, 2.4)], cam: { az: 0, el: 1.4 }, target: [0, 23, 0] },
+  'p6-wings': { segs: [seg('wings', 0, 1, 3.4)], cam: { az: 0.2, el: 1.25 }, target: [0, 30, 0] },
   // techniques
   'tq-valley': { segs: [seg('valley', 0, 1, 2.6)], cam: { az: 0.1, el: 0.8 } },
   'tq-valley-start': { ...still('valley', 0), cam: V },
@@ -80,8 +80,8 @@ export const CLIPS = {
   'tq-mountain-done': { ...still('mountain', 1), cam: { az: 0.1, el: 0.8 } },
   'tq-prelim': { segs: [seg('diagonals', 0, 1, 2.2), seg('flip', 0, 1, 1.2), seg('midlines', 0, 1, 2.2), seg('collapse', 0, 1, 4.2)], cam: V },
   'tq-bird': { segs: [seg('kiteF', 0, 1, 1.8), seg('topF', 0, 1, 1.6), seg('unkiteF', 0, 1, 1.2), seg('petalF', 0, 1, 2.6), seg('flipBird', 0, 1, 1.2), seg('kiteB', 0, 1, 1.4), seg('topB', 0, 1, 1.2), seg('unkiteB', 0, 1, 1), seg('petalB', 0, 1, 2.4)], cam: { az: 0.3, el: 0.9 }, target: [0, 20, 0] },
-  'tq-petal': { segs: [seg('topF', 0, 1, 1.6), seg('unkiteF', 0, 1, 1.2), seg('petalF', 0, 1, 3)], cam: { az: 0.3, el: 0.9 }, target: [0, 20, 0] },
-  'tq-reverse': { segs: [seg('legs', 0, 0.5, 3.4)], cam: { az: 0, el: 1.1 }, target: [0, 23, 0] },
+  'tq-petal': { segs: [seg('topF', 0, 1, 1.6), seg('unkiteF', 0, 1, 1.2), seg('petalF', 0, 1, 3)], cam: { az: 0.3, el: 1.25 }, target: [0, 20, 0] },
+  'tq-reverse': { segs: [seg('legs', 0, 0.5, 3.4)], cam: { az: 0, el: 1.4 }, target: [0, 23, 0] },
 };
 
 /** total duration in seconds of a clip */

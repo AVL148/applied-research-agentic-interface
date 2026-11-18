@@ -14,10 +14,15 @@ void main(){
   vec3 n = normalize(vN);
   vec3 base = gl_FrontFacing ? uFront : uBack;
   if(!gl_FrontFacing) n = -n;
-  float d = max(dot(n, normalize(uLight)), 0.0);
-  float l = 0.78 + 0.28 * d;
+  float key = max(dot(n, normalize(uLight)), 0.0);
+  float fill = max(dot(n, normalize(vec3(-0.6, 0.35, 0.25))), 0.0);
+  float sky = 0.5 + 0.5 * n.z;
+  float l = 0.46 + 0.30 * sky + 0.42 * key + 0.10 * fill;
+  if(!gl_FrontFacing) l = 0.80 + 0.14 * key + 0.06 * sky;
   gl_FragColor = vec4(base * l, 1.0);
 }`;
+const SVS = `attribute vec3 aPos; uniform mat4 uMvp; varying vec2 vXY; uniform vec2 uC; uniform float uR; void main(){ vXY = (aPos.xy - uC) / uR; gl_Position = uMvp * vec4(aPos,1.0); }`;
+const SFS = `precision mediump float; varying vec2 vXY; void main(){ float d = length(vXY); float a = (1.0 - smoothstep(0.15, 1.0, d)) * 0.17 + (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0; gl_FragColor = vec4(0.25, 0.18, 0.12, a); }`;
 const LVS = `attribute vec3 aPos; uniform mat4 uMvp; void main(){ gl_Position = uMvp * vec4(aPos,1.0); gl_Position.z -= 0.0006 * gl_Position.w; }`;
 const LFS = `precision mediump float; uniform vec4 uColor; void main(){ gl_FragColor = uColor; }`;
 
@@ -55,12 +60,13 @@ export function createRenderer(canvas, { front = [0.851, 0.475, 0.31], back = [1
   if (!gl) throw new Error('no webgl');
   const tri = program(gl, VS, FS);
   const lin = program(gl, LVS, LFS);
+  const shd = program(gl, SVS, SFS);
   const buf = gl.createBuffer();
   const cam = { az: -0.55, el: 0.95, dist: 430, target: [0, 0, 0] };
   const L = (p, n) => ({ a: gl.getAttribLocation(p, n), u: (m) => gl.getUniformLocation(p, m) });
 
   function resize() {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = Math.min(3, Math.max(2, window.devicePixelRatio || 1));
     const w = Math.max(1, Math.round(canvas.clientWidth * dpr));
     const h = Math.max(1, Math.round(canvas.clientHeight * dpr));
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
@@ -80,6 +86,22 @@ export function createRenderer(canvas, { front = [0.851, 0.475, 0.31], back = [1
     const view = lookAt(eye, cam.target, [0, 0, 1]);
     const proj = mat4Persp(0.62, canvas.width / canvas.height, 20, 1400);
     const mvp = mat4Mul(proj, view);
+    // soft contact shadow on the table
+    if (faces.length) {
+      let zmin = Infinity, x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+      for (const f of faces) for (const p of f.P) { zmin = Math.min(zmin, p[2]); x0 = Math.min(x0, p[0]); x1 = Math.max(x1, p[0]); y0 = Math.min(y0, p[1]); y1 = Math.max(y1, p[1]); }
+      const R = Math.max(x1 - x0, y1 - y0) * 0.75 + 10, cx = (x0 + x1) / 2, cy = (y0 + y1) / 2, z = zmin - 1.2;
+      gl.useProgram(shd);
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([cx - R, cy - R, z, cx + R, cy - R, z, cx + R, cy + R, z, cx - R, cy - R, z, cx + R, cy + R, z, cx - R, cy + R, z]), gl.DYNAMIC_DRAW);
+      const sa = gl.getAttribLocation(shd, 'aPos');
+      gl.enableVertexAttribArray(sa); gl.vertexAttribPointer(sa, 3, gl.FLOAT, false, 12, 0);
+      gl.uniformMatrix4fv(gl.getUniformLocation(shd, 'uMvp'), false, new Float32Array(mvp));
+      gl.uniform2f(gl.getUniformLocation(shd, 'uC'), cx, cy); gl.uniform1f(gl.getUniformLocation(shd, 'uR'), R);
+      gl.enable(gl.BLEND); gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      gl.depthMask(true);
+    }
     // triangles
     const tv = [];
     for (const f of faces) {
