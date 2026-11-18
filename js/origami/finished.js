@@ -28,16 +28,16 @@ export function finishedCrane() {
   faces.push(poly([[T, K[0], K[1]], [0, D[0], D[1]], [-T, K[0], K[1]]], [-1, -1, -1]));
   // wings: a kite per side that rises outwards in a V, bent a little along its middle
   for (const s of [-1, 1]) {
-    const a = [s * T, 34, 16], c = [s * T, -34, 14], low = [s * T, 2, -2], tip = [s * 88, -10, 58];
+    const a = [s * T, 34, 16], c = [s * T, -34, 14], low = [s * T, 2, -2], tip = [s * 84, -12, 46];
     faces.push(poly([a, tip, low], [0, 0, 1]));
     faces.push(poly([low, tip, c], [0, 0, 1]));
   }
   // neck and tail: thin double sheets that rise from the ends of the body; the head is a small bend
   for (const s of [-1, 1]) {
-    const x = s * 1.4;
-    faces.push(poly([[x, 26, 4], [x, 36, 30], [x, 64, 66]], [s, 0, 0]));
-    faces.push(poly([[x, 64, 66], [x, 59, 58], [x, 80, 60]], [s, 0, 0]));
-    faces.push(poly([[x, -26, 4], [x, -36, 30], [x, -66, 62]], [s, 0, 0]));
+    const x = s * 2.2;
+    faces.push(poly([[x, 24, 2], [x, 38, 34], [x, 62, 62]], [s, 0, 0]));
+    faces.push(poly([[x, 62, 62], [x, 56, 52], [x, 80, 56]], [s, 0, 0]));
+    faces.push(poly([[x, -24, 2], [x, -38, 34], [x, -64, 58]], [s, 0, 0]));
   }
   return faces;
 }

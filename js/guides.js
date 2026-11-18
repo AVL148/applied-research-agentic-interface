@@ -325,7 +325,7 @@ export const GUIDES = {
       { title: t('Fold the diagonals'), clip: 'p2-diagonals', text: t('Coloured side up. Fold both diagonals and unfold them. You get an X.'), shapes: FR.diagonalFold() },
       { title: t('Turn over and fold the centre lines'), clip: 'p2-centre', text: t('White side up. Fold the paper left onto right and top onto bottom, unfolding each time.'), shapes: FR.flippedMidlines() },
       { title: t('All creases are in'), clip: 'p2-result', text: t('You now have two lines through the middle and two diagonals. This lets the paper collapse by itself.'), shapes: FR.allCreased() },
-      { title: t('Push the sides inwards'), clip: 'p3-collapse', text: t('Lift two opposite corners and push the centre down. The centre lines fold inwards as valley folds, the diagonals as mountain folds, until all four corners meet and the paper lies flat as a square with four flaps.'), shapes: FR.collapse() },
+      { title: t('Push the sides inwards'), clip: 'p3-collapse', text: t('Bring the two side corners together towards the corner nearest to you, so the far half rises like a dome. Then push the far corner forward and press everything flat: the four corners meet and the paper lies flat as a square with four flaps.'), shapes: FR.collapse() },
       { title: t('Press flat'), clip: 'p3-base', text: t('You are left with a square with four flaps and an open end. This is where the crane begins.'), shapes: FR.prelimBase() },
     ],
     mistakes: [t('Not folding all the diagonals and centre lines: the model will not collapse by itself.'), t('Accidentally starting with the wrong side up: the colour ends up inside.'), t('Holding the open end up instead of facing you.')],
@@ -346,7 +346,7 @@ export const PLANS = {
     { title: t('Result'), clip: 'p2-result', text: t('You have 8 creases. Check that they run straight through the centre.'), shapes: FR.allCreased() },
   ],
   3: [
-    { title: t('Collapse into the base shape'), clip: 'p3-collapse', text: t('Lift two opposite corners and push the centre down. The centre lines fold inwards as valley folds, the diagonals as mountain folds, until all four corners meet and the paper lies flat as a square with four flaps.'), shapes: FR.collapse() },
+    { title: t('Collapse into the base shape'), clip: 'p3-collapse', text: t('Bring the two side corners together towards the corner nearest to you, so the far half rises like a dome. Then push the far corner forward and press everything flat: the four corners meet and the paper lies flat as a square with four flaps.'), shapes: FR.collapse() },
     { title: t('Base shape'), clip: 'p3-base', text: t('Open end towards you.'), shapes: FR.prelimBase() },
     { title: t('Kite fold'), clip: 'p3-kite', text: t('Fold the lower edges to the centre line: valley folds on both sides.'), shapes: FR.kiteLines() },
     { title: t('Result'), clip: 'p3-kite-back', text: t('A kite. Turn over and repeat.'), shapes: FR.kite() },
