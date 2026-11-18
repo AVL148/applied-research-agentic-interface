@@ -168,15 +168,8 @@ export function fanPose(t, faces) {
   // then let the whole thing rest on the table
   const rx = (a, p) => apply(hinge(PI / 4, a), p);
   const base = raw.map((P) => P.map((p) => rx(-rho[1] / 2, p)));
-  let best = 0, bestV = Infinity;
-  for (let a = -PI / 2; a <= PI / 2 + 1e-9; a += PI / 90) {
-    let zs = 0, n = 0, zmin = Infinity;
-    for (const P of base) for (const p of P) { const z = rx(a, p)[2]; zs += z; n++; zmin = Math.min(zmin, z); }
-    const v = zs / n - zmin;
-    if (v < bestV - 1e-9) { bestV = v; best = a; }
-  }
   let zmin = Infinity;
-  const out = base.map((P) => P.map((p) => { const q = rx(best, p); zmin = Math.min(zmin, q[2]); return q; }));
+  const out = base.map((P) => P.map((p) => { zmin = Math.min(zmin, p[2]); return p; }));
   return out.map((P) => P.map((p) => [p[0], p[1], p[2] - zmin]));
 }
 /** where one paper corner ends up: used to turn the finished stack onto its corner */

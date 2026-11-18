@@ -16,28 +16,31 @@ function poly(pts, out) {
 export function finishedCrane() {
   const faces = [];
   const T = 3.2; // half thickness of the body (two fins side by side)
-  // body: two upright fins, closed at the top and bottom edge, seen from the side as a kite
-  const F = [30, 22], K = [-30, 22], U = [0, 52], D = [0, -4];
+  const lerp = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+  const U = [0, 0, 52], D = [0, 0, -4], C = [0, 0, 20];
+  const out = (pts) => sub(mid(pts), C); // body faces point away from the middle of the body
+  // body: a closed little solid, every face shares its edges with the next one
   for (const s of [-1, 1]) {
-    const q = (p) => [s * T, p[0], p[1]];
-    faces.push(poly([q(F), q(U), q(K), q(D)], [s, 0, 0]));
+    const F = [s * T, 30, 22], K = [s * T, -30, 22];
+    for (const pts of [[F, U, K], [F, K, D]]) faces.push(poly(pts, [s, 0, 0]));
   }
-  faces.push(poly([[T, F[0], F[1]], [0, U[0], U[1]], [-T, F[0], F[1]]], [1, 1, 1]));
-  faces.push(poly([[T, K[0], K[1]], [0, U[0], U[1]], [-T, K[0], K[1]]], [-1, -1, 1]));
-  faces.push(poly([[T, F[0], F[1]], [0, D[0], D[1]], [-T, F[0], F[1]]], [1, 1, -1]));
-  faces.push(poly([[T, K[0], K[1]], [0, D[0], D[1]], [-T, K[0], K[1]]], [-1, -1, -1]));
-  // wings: a kite per side that rises outwards in a V, bent a little along its middle
-  for (const s of [-1, 1]) {
-    const a = [s * T, 34, 16], c = [s * T, -34, 14], low = [s * T, 2, -2], tip = [s * 84, -12, 46];
-    faces.push(poly([a, tip, low], [0, 0, 1]));
-    faces.push(poly([low, tip, c], [0, 0, 1]));
+  for (const y of [30, -30]) {
+    const A = [T, y, 22], B = [-T, y, 22];
+    faces.push(poly([A, B, U], out([A, B, U])));
+    faces.push(poly([A, B, D], out([A, B, D])));
   }
-  // neck and tail: thin double sheets that rise from the ends of the body; the head is a small bend
   for (const s of [-1, 1]) {
-    const x = s * 2.2;
-    faces.push(poly([[x, 24, 2], [x, 38, 34], [x, 62, 62]], [s, 0, 0]));
-    faces.push(poly([[x, 62, 62], [x, 56, 52], [x, 80, 56]], [s, 0, 0]));
-    faces.push(poly([[x, -24, 2], [x, -38, 34], [x, -64, 58]], [s, 0, 0]));
+    const F = [s * T, 30, 22], K = [s * T, -30, 22];
+    // wings: attached along the two lower edges of the body, rising outwards in a V
+    const tip = [s * 84, -12, 46];
+    faces.push(poly([F, D, tip], [0, 0, 1]));
+    faces.push(poly([D, K, tip], [0, 0, 1]));
+    // neck and tail: thin sheets that continue the upper edges of the body and meet in one point
+    const nt = [0, 64, 60], tt = [0, -64, 58], hd = [0, 80, 56];
+    const E = lerp(F, U, 0.5), G = lerp(K, U, 0.5), H = lerp(F, nt, 0.8);
+    faces.push(poly([F, E, nt], [s, 0, 0]));
+    faces.push(poly([nt, H, hd], [s, 0, 0]));
+    faces.push(poly([K, G, tt], [s, 0, 0]));
   }
   return faces;
 }
