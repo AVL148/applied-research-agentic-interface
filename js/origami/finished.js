@@ -32,13 +32,15 @@ export function finishedCrane() {
   }
   for (const s of [-1, 1]) {
     const F = V(s, 36, 24), K = V(s, -36, 24), U = V(s, 0, 62), D = V(s, 0, -22);
-    // wings: two big plates hinged on the upper edges of the body, swept back and rising in a V
+    // wings: two big plates hinged on the sides of the body, swept back and rising in a V
     const tip = [s * 90, -8, 72];
-    faces.push(poly([F, U, tip], [0, 0, 1]));
-    faces.push(poly([U, K, tip], [0, 0, 1]));
+    // the fold of each wing lies underneath: seen from above the wing is a shallow valley
+    const M = V(s, 0, 8);
+    faces.push(poly([F, M, tip], [0, 0, 1]));
+    faces.push(poly([M, K, tip], [0, 0, 1]));
     // neck and tail: thin sheets rising from the lower front and back edges; the head is a small bend
-    const nt = [0, 88, 76], tt = [0, -88, 70], hd = [0, 104, 66];
-    const E = lerp(F, U, 0.5), G = lerp(K, U, 0.5), H = lerp(F, nt, 0.85);
+    const nt = [0, 88, 76], tt = [0, -88, 70], hd = [0, 116, 62];
+    const E = lerp(F, U, 0.5), G = lerp(K, U, 0.5), H = lerp(F, nt, 0.6);
     faces.push(poly([F, E, nt], [s, 0, 0]));
     faces.push(poly([nt, H, hd], [s, 0, 0]));
     faces.push(poly([K, G, tt], [s, 0, 0]));
