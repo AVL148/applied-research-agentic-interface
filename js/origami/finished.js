@@ -20,14 +20,17 @@ export function finishedCrane() {
   const C = [0, 0, 20];
   const out = (pts) => sub(mid(pts), C); // body faces point away from the middle of the body
   const V = (s, y, z) => [s * T, y, z];
-  const pts = { F: [30, 20], K: [-30, 20], U: [0, 46], D: [0, 8] };
+  const pts = { F: [30, 20], K: [-30, 20], U: [0, 46], P: [26, -6], Q: [-26, -6], N: [0, 8] };
   // body: a compact pyramid-like diamond made of two fins, closed along its edges
   for (const s of [-1, 1]) {
-    const F = V(s, ...pts.F), K = V(s, ...pts.K), U = V(s, ...pts.U), D = V(s, ...pts.D);
+    const F = V(s, ...pts.F), K = V(s, ...pts.K), U = V(s, ...pts.U), P = V(s, ...pts.P), Q = V(s, ...pts.Q), N = V(s, ...pts.N);
+    // lower body: two pointed feet (front and back) with a notch between them
     faces.push(poly([F, U, K], [s, 0, 0]));
-    faces.push(poly([F, K, D], [s, 0, 0]));
+    faces.push(poly([F, P, N], [s, 0, 0]));
+    faces.push(poly([K, N, Q], [s, 0, 0]));
+    faces.push(poly([F, N, K], [s, 0, 0]));
   }
-  for (const [a, b] of [[pts.F, pts.U], [pts.F, pts.D], [pts.K, pts.U], [pts.K, pts.D]]) {
+  for (const [a, b] of [[pts.F, pts.U], [pts.F, pts.P], [pts.P, pts.N], [pts.N, pts.Q], [pts.Q, pts.K], [pts.K, pts.U]]) {
     const q = [V(1, ...a), V(1, ...b), V(-1, ...b), V(-1, ...a)];
     faces.push(poly(q, out(q)));
   }
