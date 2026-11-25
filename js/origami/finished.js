@@ -20,7 +20,7 @@ export function finishedCrane() {
   const C = [0, 0, 20];
   const out = (pts) => sub(mid(pts), C); // body faces point away from the middle of the body
   const V = (s, y, z) => [s * T, y, z];
-  const pts = { F: [30, 20], K: [-30, 20], U: [0, 46], D: [0, -20] };
+  const pts = { F: [30, 20], K: [-30, 20], U: [0, 46], D: [0, 8] };
   // body: a compact pyramid-like diamond made of two fins, closed along its edges
   for (const s of [-1, 1]) {
     const F = V(s, ...pts.F), K = V(s, ...pts.K), U = V(s, ...pts.U), D = V(s, ...pts.D);
@@ -40,8 +40,8 @@ export function finishedCrane() {
     faces.push(poly([F, M, tip], [0, 0, 1]));
     faces.push(poly([M, K, tip], [0, 0, 1]));
     // neck and tail: steep sheets rising from the front and back edges; the head is a bent beak
-    const nt = [0, 62, 88], tt = [0, -58, 96], hd = [0, 84, 68];
-    const E = lerp(F, U, 0.45), G = lerp(K, U, 0.45), H = lerp(F, nt, 0.62);
+    const nt = [0, 62, 88], tt = [0, -58, 96], hd = [0, 106, 80];
+    const E = lerp(F, U, 0.45), G = lerp(K, U, 0.45), H = lerp(F, nt, 0.8);
     faces.push(poly([F, E, nt], [s, 0, 0]));
     faces.push(poly([nt, H, hd], [s, 0, 0]));
     faces.push(poly([K, G, tt], [s, 0, 0]));
