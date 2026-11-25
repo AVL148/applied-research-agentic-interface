@@ -49,5 +49,20 @@ export function finishedCrane() {
     faces.push(poly([nt, H, hd], [s, 0, 0]));
     faces.push(poly([K, G, tt], [s, 0, 0]));
   }
+  // close the neck, beak and tail into thin two-layer strips: both fins meet at the tip
+  const nt = [0, 62, 88], tt = [0, -58, 96], hd = [0, 106, 80];
+  const at = (P, k) => [k * T, P[1], P[2]]; // same point on the +/- fin (the fins are T apart from the middle)
+  const Fp = [0, ...pts.F], Kp = [0, ...pts.K], Up = [0, ...pts.U];
+  const E0 = lerp(Fp, Up, 0.45), G0 = lerp(Kp, Up, 0.45), H0 = lerp(Fp, nt, 0.8);
+  const hw = (P, tip) => (P === H0 ? T * 0.2 : T);
+  const closeEdge = (P, tip, cen) => {
+    const tri = [[hw(P) , P[1], P[2]], tip, [-hw(P), P[1], P[2]]];
+    faces.push(poly(tri, sub(mid(tri), cen)));
+  };
+  const cn = mid([Fp, E0, nt]), ct = mid([Kp, G0, tt]), ch = mid([H0, nt, hd]);
+  closeEdge(Fp, nt, cn); closeEdge(E0, nt, cn);
+  closeEdge(Kp, tt, ct); closeEdge(G0, tt, ct);
+  closeEdge(H0, hd, ch);
+  void at;
   return faces;
 }
