@@ -15,32 +15,33 @@ function poly(pts, out) {
 
 export function finishedCrane() {
   const faces = [];
-  const T = 3; // half thickness of the body (two fins side by side)
+  const T = 4; // half thickness of the body (two fins side by side)
   const lerp = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
   const C = [0, 0, 20];
   const out = (pts) => sub(mid(pts), C); // body faces point away from the middle of the body
   const V = (s, y, z) => [s * T, y, z];
-  // body (the lower part): a narrow, upright diamond made of two fins, closed along its edges
+  const pts = { F: [30, 20], K: [-30, 20], U: [0, 46], D: [0, -20] };
+  // body: a compact pyramid-like diamond made of two fins, closed along its edges
   for (const s of [-1, 1]) {
-    const F = V(s, 36, 24), K = V(s, -36, 24), U = V(s, 0, 62), D = V(s, 0, -22);
+    const F = V(s, ...pts.F), K = V(s, ...pts.K), U = V(s, ...pts.U), D = V(s, ...pts.D);
     faces.push(poly([F, U, K], [s, 0, 0]));
     faces.push(poly([F, K, D], [s, 0, 0]));
   }
-  for (const [a, b] of [[[36, 24], [0, 62]], [[36, 24], [0, -22]], [[-36, 24], [0, 62]], [[-36, 24], [0, -22]]]) {
-    const q = [V(1, a[0], a[1]), V(1, b[0], b[1]), V(-1, b[0], b[1]), V(-1, a[0], a[1])];
+  for (const [a, b] of [[pts.F, pts.U], [pts.F, pts.D], [pts.K, pts.U], [pts.K, pts.D]]) {
+    const q = [V(1, ...a), V(1, ...b), V(-1, ...b), V(-1, ...a)];
     faces.push(poly(q, out(q)));
   }
   for (const s of [-1, 1]) {
-    const F = V(s, 36, 24), K = V(s, -36, 24), U = V(s, 0, 62), D = V(s, 0, -22);
-    // wings: two big plates hinged on the sides of the body, swept back and rising in a V
-    const tip = [s * 90, -8, 72];
-    // the fold of each wing lies underneath: seen from above the wing is a shallow valley
-    const M = V(s, 0, 8);
+    const F = V(s, ...pts.F), K = V(s, ...pts.K), U = V(s, ...pts.U);
+    // wings: wide kite-shaped plates, nearly horizontal, slightly raised at the tips;
+    // the fold lies underneath (valley seen from above), like in the photos
+    const tip = [s * 88, -10, 34];
+    const M = V(s, 0, 12);
     faces.push(poly([F, M, tip], [0, 0, 1]));
     faces.push(poly([M, K, tip], [0, 0, 1]));
-    // neck and tail: thin sheets rising from the lower front and back edges; the head is a small bend
-    const nt = [0, 88, 76], tt = [0, -88, 70], hd = [0, 116, 62];
-    const E = lerp(F, U, 0.5), G = lerp(K, U, 0.5), H = lerp(F, nt, 0.6);
+    // neck and tail: steep sheets rising from the front and back edges; the head is a bent beak
+    const nt = [0, 62, 88], tt = [0, -58, 96], hd = [0, 84, 68];
+    const E = lerp(F, U, 0.45), G = lerp(K, U, 0.45), H = lerp(F, nt, 0.62);
     faces.push(poly([F, E, nt], [s, 0, 0]));
     faces.push(poly([nt, H, hd], [s, 0, 0]));
     faces.push(poly([K, G, tt], [s, 0, 0]));
