@@ -54,7 +54,6 @@ js/diagrams.js      drawing library for fold diagrams (SVG)
 js/origami/engine.js   folding engine: split faces, hinge chains, layer ordering
 js/origami/crane.js    the crane steps as fold operations
 js/origami/fan.js      rigid collapse of the creased square into the base shape
-js/origami/finished.js the finished crane as a small hand-built model (goal picture)
 js/origami/clips.js    clips per step (segments, camera) used by the guides
 js/origami/gl.js       small WebGL renderer (two-sided paper, crease lines)
 js/origami/player.js   player: controls, orbit, fallback
@@ -76,7 +75,7 @@ tests/              node:test
 | --- | --- |
 | Navigation, progress, reflection, storage, techniques | Really works, locally |
 | Step-by-step plans with drawings | Drawn in code; the later steps (neck, head, wings) are schematic |
-| Animated 3D folding | Real rigid folding for the creases, the collapse into the base shape (solved numerically, with one short stretch where it hops between two rigid paths), kite, petal, bird base, narrowing the legs, the reverse folds (neck on the right, tail on the left) and the head; the wings are a rigid approximation; the finished crane is a hand-built model, not a folded one |
+| Animated 3D folding | Real rigid folding for every step: the creases, the collapse into the preliminary base (solved numerically, coloured side outside), kite, petal, bird base, narrowing the legs, the pre-creases and inside reverse folds for neck (left) and tail (right), the head and the wings. The reverse folds are shown like the reference animation (the front layers open like a page, the point folds up, the page closes), so in the middle of those moves the paper briefly comes apart at the spine; the start and end of every step are exact. The finished crane is the folded paper itself, stood up with the wings opened |
 | Uploading, storing and playing video, jumping to the fixed segment | Really works, locally |
 | Coach and video analysis with Claude | Works once the server has a valid `ANTHROPIC_API_KEY`; tested with a mock Claude, not yet with a real key |
 | Image analysis of your own folded model | Not built yet |

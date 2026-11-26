@@ -40,7 +40,7 @@ test('flat results: faces that overlap never share a layer', () => {
     if (!op.end.flat) continue;
     const fs = op.end.faces;
     for (let i = 0; i < fs.length; i++) for (let j = i + 1; j < fs.length; j++) {
-      if (overlap(fs[i], fs[j])) assert.ok(Math.abs(fs[i].P[0][2] - fs[j].P[0][2]) > LAYER * 0.5, `${id}: faces ${i} and ${j}`);
+      if (overlap(fs[i], fs[j])) assert.ok(Math.abs(fs[i].P[0][2] - fs[j].P[0][2]) > LAYER * 0.2, `${id}: faces ${i} and ${j}`);
     }
   }
 });
@@ -82,25 +82,52 @@ test('the collapse is rigid, ends flat in four layers and matches the base shape
   assert.ok(Math.hypot(corner[0], corner[1] + 56.6) < 0.5, 'the corners meet at the open end');
 });
 
-test('the finished crane is a closed picture with wings, neck and tail', () => {
-  const faces = ops.finished.end.faces;
-  const xs = faces.flatMap((f) => f.P.map((p) => p[0])), ys = faces.flatMap((f) => f.P.map((p) => p[1]));
-  assert.ok(Math.max(...xs) - Math.min(...xs) > 150, 'wings spread');
-  assert.ok(Math.max(...ys) - Math.min(...ys) > 120, 'neck and tail');
-  for (const f of faces) for (const p of f.P) assert.ok(p.every(Number.isFinite));
+test('the base shape and the bird base show the coloured side on the outside, front and back', () => {
+  // a face shows its coloured side upwards when its paper coordinates and its position turn the same way
+  const turn = (pts) => { let a = 0; for (let i = 0; i < pts.length; i++) { const p = pts[i], q = pts[(i + 1) % pts.length]; a += p[0] * q[1] - q[0] * p[1]; } return Math.sign(a); };
+  const colouredUp = (f) => turn(f.P) === turn(f.uv);
+  for (const id of ['collapse', 'petalB', 'narrowFR']) {
+    const fs = ops[id].end.faces;
+    const zs = fs.map((f) => f.P[0][2]);
+    const topF = fs[zs.indexOf(Math.max(...zs))], botF = fs[zs.indexOf(Math.min(...zs))];
+    assert.ok(colouredUp(topF), `${id}: the top shows colour`);
+    assert.ok(!colouredUp(botF), `${id}: the bottom shows colour`);
+  }
 });
 
-test('the legs are narrowed, then folded up and outwards into a neck on the right and a tail on the left', () => {
+test('the finished crane is the folded paper itself: wings open, neck, head and tail standing up', () => {
+  const faces = ops.finished.end.faces;
+  for (const f of faces) for (const p of f.P) assert.ok(p.every(Number.isFinite));
+  const ext = (sel, a) => { const v = faces.filter(sel).flatMap((f) => f.P.map((p) => p[a])); return [Math.min(...v), Math.max(...v)]; };
+  const all = () => true, tag = (k) => (f) => (f.tags || []).includes(k);
+  const [x0, x1] = ext(all, 0), [y0, y1] = ext(all, 1), [z0, z1] = ext(all, 2);
+  assert.ok(x1 - x0 > 100, 'neck and tail spread');
+  assert.ok(y1 - y0 > 90, 'wings spread');
+  assert.ok(z1 - z0 > 40, 'standing up');
+  const [, wz1] = ext(tag('wingT'), 2), [wy0] = ext(tag('wingT'), 1);
+  assert.ok(wy0 < -20 && wz1 > 20, 'one wing sticks out to the front, a little upwards');
+  assert.ok(ext(tag('neck'), 0)[0] < -40 && ext(tag('tail'), 0)[1] > 40, 'neck on one side, tail on the other');
+  assert.ok(faces.length === ops.wings.start.length, 'same paper as the last fold step');
+});
+
+test('the legs are narrowed, then reverse-folded up into a neck on the left and a tail on the right, with a head', () => {
   const lowWidth = (faces) => { const v = faces.filter((f) => f.P.reduce((a, p) => a + p[1], 0) / f.P.length < 0).flatMap((f) => f.P).map((p) => p[0]); return Math.max(...v) - Math.min(...v); };
   assert.ok(lowWidth(ops.petalB.end.faces) > 60, 'bird base is wide at the legs');
-  assert.ok(lowWidth(ops.narrowF.end.faces) < 40, 'legs are narrow after both narrowing folds');
-  const end = ops.legs.end.faces;
+  assert.ok(lowWidth(ops.narrowFR.end.faces) < 40, 'legs are narrow after the narrowing folds on both sides');
   const tagged = (f, k) => (f.tags || []).includes(k);
+  const end = ops.revR.end.faces;
   const tip = (k) => end.filter((f) => tagged(f, k)).flatMap((f) => f.P).reduce((a, p) => (p[1] > a[1] ? p : a));
-  assert.ok(tip('neck')[0] > 30 && tip('neck')[1] > 30, 'neck points up and to the right');
-  assert.ok(tip('tail')[0] < -30 && tip('tail')[1] > 30, 'tail points up and to the left');
+  assert.ok(tip('neck')[0] < -30 && tip('neck')[1] > 30, 'neck points up and to the left');
+  assert.ok(tip('tail')[0] > 30 && tip('tail')[1] > 30, 'tail points up and to the right');
+  // inside reverse fold: in the neck the layers of the front half stay above the layers of the back half
+  const zOf = (k) => end.filter((f) => tagged(f, k)).map((f) => f.P[0][2]);
+  assert.ok(Math.min(...zOf('neckT')) > Math.max(...zOf('neckB')), 'the neck lies between the two halves');
+  // pre-creases unfold again
+  for (const id of ['preL', 'preR', 'headPre']) {
+    ops[id].end.faces.forEach((f, i) => f.P.forEach((p, k) => assert.ok(Math.hypot(p[0] - ops[id].start[i].P[k][0], p[1] - ops[id].start[i].P[k][1]) < 1e-6, `${id} unfolds`)));
+  }
   const h = ops.head.end.faces.filter((f) => tagged(f, 'head')).flatMap((f) => f.P);
-  assert.ok(h.length > 0 && Math.max(...h.map((p) => p[0])) > tip('neck')[0] - 5, 'the head bends outwards');
+  assert.ok(h.length > 0 && Math.min(...h.map((p) => p[1])) < tip('neck')[1] - 25, 'the head bends down');
 });
 
 test('the kite folds on both sides play as one clip', () => {

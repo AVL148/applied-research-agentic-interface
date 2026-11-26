@@ -129,14 +129,14 @@ export const SHAPES = {
     ];
   },
   head: () => {
-    const neck = [[152, 150], [144, 112], [188, 62], [196, 74]];
+    const neck = [[88, 150], [96, 112], [52, 62], [44, 74]];
     return [
-      poly([[88, 150], [96, 112], [52, 62], [44, 74]], 'f'),
       poly(neck, 'f'),
+      poly([[152, 150], [144, 112], [188, 62], [196, 74]], 'f'),
       poly([[120, 76], [152, 150], [120, 200], [88, 150]], 'f'),
       crease([120, 76], [120, 200]),
-      valley([180, 70], [198, 58]),
-      arrow([190, 40], [190, 56]),
+      valley([60, 70], [42, 58]),
+      arrow([50, 40], [50, 56]),
       label(t('head: small reverse fold'), 120, 228),
     ];
   },
@@ -357,14 +357,14 @@ export const PLANS = {
     { title: t('Bird base'), clip: 'p4-bird', text: t('Repeat on the back.'), shapes: FR.birdBase() },
   ],
   5: [
-    { title: t('Make it narrow'), clip: 'p5-narrow', text: t('Fold the lower edges to the centre line.'), shapes: FR.narrowLines() },
-    { title: t('Narrow shape'), clip: 'p5-narrow2', text: t('Turn over and repeat.'), shapes: FR.narrow() },
-    { title: t('Reverse folds'), clip: 'p5-legs', text: t('Fold the right-hand lower point up and outwards with a reverse fold. This becomes the neck.'), shapes: SHAPES.legsLines() },
-    { title: t('Neck and tail'), clip: 'p5-reverse', text: t('Fold the left-hand lower point up and outwards in the same way. This becomes the tail.'), shapes: SHAPES.neckTail() },
+    { title: t('Make it narrow'), clip: 'p5-narrow', text: t('Fold the lower edge of the top layer to the centre line, first on the left, then on the right. The crease runs from the bottom point to the side edge, a little above the corner.'), shapes: FR.narrowLines() },
+    { title: t('Narrow shape'), clip: 'p5-narrow2', text: t('Turn over and do the same on this side: first left, then right.'), shapes: FR.narrow() },
+    { title: t('Pre-crease the legs'), clip: 'p5-legs', text: t('Fold the left lower point up and outwards along a slanting line and unfold it again. Do the same with the right point. These creases guide the reverse folds.'), shapes: SHAPES.legsLines() },
+    { title: t('Neck and tail'), clip: 'p5-reverse', text: t('Reverse fold the left point: open the front layers like a page, fold the point up inside along the pre-crease and close the page again. This becomes the neck. Do the same with the right point: the tail.'), shapes: SHAPES.neckTail() },
   ],
   6: [
-    { title: t('Head'), clip: 'p6-head', text: t('Fold the tip of the neck over with a small reverse fold.'), shapes: SHAPES.head() },
-    { title: t('Wings apart'), clip: 'p6-wings', text: t('Pull the two wings apart: one towards you and one away from you, until they are horizontal. Check that both sides are the same.'), shapes: SHAPES.wingsOpen() },
+    { title: t('Head'), clip: 'p6-head', text: t('Fold the tip of the neck down and unfold. Open the layers again, fold the tip inside along this crease and close: the head.'), shapes: SHAPES.head() },
+    { title: t('Wings down'), clip: 'p6-wings', text: t('Fold the wings down on both sides along the line between the two body corners, until they stand out sideways. Check that both sides are the same.'), shapes: SHAPES.wingsOpen() },
     { title: t('Inflate it'), clip: 'p1-goal', text: t('Gently pull the wings outwards and press the belly out.'), shapes: SHAPES.crane() },
   ],
   7: [

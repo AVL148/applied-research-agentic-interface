@@ -6,6 +6,7 @@
 
 export const SIZE = 160;
 export const LAYER = 0.9; // distance between stacked layers
+export const MAX_PILE = 6.3; // a pile is never thicker than this (seven layers at full distance)
 
 const TAU = Math.PI * 2;
 const v3 = {
@@ -171,7 +172,9 @@ export function layerFaces(faces, ref = faces) {
     if (!changed) break;
   }
   const top = Math.max(0, ...layer);
-  return layer.map((l) => (l - top / 2) * LAYER);
+  // thick piles (the narrow legs have 16 layers) get thinner layers, so the paper keeps looking like paper
+  const gap = Math.min(LAYER, MAX_PILE / Math.max(1, top));
+  return layer.map((l) => (l - top / 2) * gap);
 }
 
 /* ------------------------------------------------------------------ motion */
@@ -237,7 +240,7 @@ export function buildOp(state, spec) {
   for (const m of spec.moves || []) {
     const picked = faces.filter((f) => m.sel(f, helpers));
     for (const f of picked) {
-      if (m.mark) f.tags = [...(f.tags || []), m.mark];
+      if (m.mark) f.tags = [...(f.tags || []), ...[].concat(m.mark)];
       if (!chains.has(f.id)) chains.set(f.id, []);
       for (const c of m.chain) {
         const el = { ...c };
@@ -269,7 +272,7 @@ export function buildOp(state, spec) {
     if (g.rot) { const s = smooth((t - g.t0) / (1 - g.t0)); const a = g.rot * s; const c = Math.cos(a), si = Math.sin(a); const nx = x * c - y * si; const ny = x * si + y * c; x = nx; y = ny; }
     if (g.shift) { const s = smooth((t - g.t0) / (1 - g.t0)); x += g.shift[0] * s; y += g.shift[1] * s; }
     if (g.tilt) { // stand the model up: rotate about the x axis through (0, y0, 0)
-      const s = smooth((t - g.tilt.from) / (1 - g.tilt.from)); const a = g.tilt.angle * s; const c = Math.cos(a), si = Math.sin(a);
+      const s = smooth((t - g.tilt.from) / ((g.tilt.to ?? 1) - g.tilt.from)); const a = g.tilt.angle * s; const c = Math.cos(a), si = Math.sin(a);
       const dy = y - g.tilt.y0; const ny = g.tilt.y0 + dy * c - z * si; const nz = dy * si + z * c; y = ny; z = nz + (g.tilt.lift || 0) * s;
     }
     return [x, y, z];
@@ -282,10 +285,13 @@ export function buildOp(state, spec) {
         const Ps = spec.custom(t, faces);
         return faces.map((f, i) => ({ ...f, P: Ps[i].map((p) => globalAt(t, p, op.g)) }));
       }
+      // optional: press the layers together (for the finished model the paper should look thin again)
+      const sq = spec.squeeze;
+      const k = sq ? 1 - (1 - sq.to) * smooth((t - sq.t[0]) / (sq.t[1] - sq.t[0])) : 1;
       return faces.map((f) => {
         const ch = chains.get(f.id) || [];
         const P = f.P.map((p0) => {
-          let p = p0;
+          let p = k === 1 ? p0 : [p0[0], p0[1], p0[2] * k];
           for (let i = ch.length - 1; i >= 0; i--) {
             const ang = chainAngle(ch[i], t);
             p = rot(ch[i], p, Math.abs(ang) > 2.5 ? ang * scale : ang);

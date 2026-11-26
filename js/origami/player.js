@@ -41,7 +41,11 @@ export function mountPlayer(box, clipId, { autoplay = true } = {}) {
     const extras = {};
     if (res.op?.creases?.length && res.k < (res.op.spec?.creaseUntil ?? 0.85)) {
       const valley = [], mountain = [];
-      for (const c of res.op.creases) dashes(c.a, c.b, 0.9, c.kind === 'mountain' ? mountain : valley, c.kind === 'mountain' ? 9 : 7, 4.5);
+      // draw the crease lines just above the top of the pile (as it lies at the start of the step), so that they stay
+      // visible on thick models too
+      let zc = 0;
+      for (const f of res.op.start || []) for (const v of f.P) zc = Math.max(zc, v[2]);
+      for (const c of res.op.creases) dashes(c.a, c.b, zc + 0.3, c.kind === 'mountain' ? mountain : valley, c.kind === 'mountain' ? 9 : 7, 4.5);
       extras.creases = { valley, mountain };
     }
     r.render(res.faces, extras);
